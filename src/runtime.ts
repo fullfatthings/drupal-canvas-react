@@ -3,6 +3,11 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import type { ComponentMap, RenderFunction } from './types.js'
 
+// Expose React globally for components using classic JSX transform
+if (typeof window !== 'undefined') {
+  ;(window as any).React = React
+}
+
 /**
  * Create a render function for standalone component rendering in the browser.
  *
