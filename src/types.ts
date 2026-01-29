@@ -129,7 +129,7 @@ export interface ComponentDefinition {
   name: string
   category: string
   description: string
-  status: 'stable' | 'beta' | 'deprecated'
+  status: 'experimental' | 'stable' | 'deprecated' | 'obsolete'
   props: {
     type: 'object'
     properties: Record<string, PropertySchema>
