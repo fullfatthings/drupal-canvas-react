@@ -48,7 +48,7 @@ export function createRenderFunction(components: ComponentMap): RenderFunction {
       moduleRecord[componentName] ||
       Object.values(moduleRecord).find((exp) => typeof exp === 'function')
 
-    if (!Component) {
+    if (!Component || typeof Component !== 'function') {
       throw new Error(`Component ${componentName} has no valid export`)
     }
 
@@ -58,7 +58,10 @@ export function createRenderFunction(components: ComponentMap): RenderFunction {
       parsedSlots[slotName] = parse(html)
     }
 
-    const el = React.createElement(Component, { ...props, ...parsedSlots })
+    const el = React.createElement(
+      Component as React.ComponentType<Record<string, unknown>>,
+      { ...props, ...parsedSlots }
+    )
     createRoot(container).render(el)
 
     return container

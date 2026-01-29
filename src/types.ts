@@ -11,10 +11,11 @@ export interface SlotDefinition {
 }
 
 /**
- * A component module with its default export.
+ * A component module with default or named exports.
  */
 export interface ComponentModule {
-  default: ComponentType<any>
+  default?: ComponentType<any>
+  [key: string]: ComponentType<any> | undefined
 }
 
 /**
