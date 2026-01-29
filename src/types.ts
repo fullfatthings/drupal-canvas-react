@@ -144,6 +144,8 @@ export interface PropertySchema {
   title: string
   description?: string
   default?: unknown
+  /** Allowed values for enum/union string types */
+  enum?: string[]
 }
 
 /**

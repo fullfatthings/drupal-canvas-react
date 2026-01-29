@@ -264,6 +264,95 @@ describe('generateComponentIndex', () => {
     expect(ids).not.toContain('Hero')
     expect(ids).not.toContain('Card')
   })
+
+  it('preserves prop order from source', async () => {
+    const config = defineConfig({
+      outDir: './dist',
+      components: {
+        WithProps: {
+          path: path.join(fixturesDir, 'WithProps.tsx'),
+          loader: () => import('./fixtures/WithProps.js'),
+          name: 'With Props',
+          description: 'Component with props',
+        },
+      },
+    })
+
+    const index = await generateComponentIndex(config)
+    const component = index.components[0]
+
+    // Props should be in source order: title, count, bordered
+    const propNames = Object.keys(component.props.properties)
+    expect(propNames).toEqual(['title', 'count', 'bordered'])
+  })
+
+  it('preserves prop order when manual props override slots', async () => {
+    const config = defineConfig({
+      outDir: './dist',
+      components: {
+        WithSlots: {
+          path: path.join(fixturesDir, 'WithSlots.tsx'),
+          loader: () => import('./fixtures/WithSlots.js'),
+          name: 'With Slots',
+          description: 'Component with slots',
+          // Override children slot as a prop
+          props: {
+            children: { type: 'string', title: 'Children' },
+          },
+        },
+      },
+    })
+
+    const index = await generateComponentIndex(config)
+    const component = index.components[0]
+
+    // Props should be in source order: header, children (was slot, now prop)
+    // children should be in its original position, not at the end
+    const propNames = Object.keys(component.props.properties)
+    expect(propNames).toEqual(['header', 'children'])
+
+    // footer should still be a slot
+    expect(component.slots?.footer).toBeDefined()
+    expect(component.slots?.children).toBeUndefined()
+  })
+
+  it('extracts enum values from union string types', async () => {
+    const config = defineConfig({
+      outDir: './dist',
+      components: {
+        WithEnum: {
+          path: path.join(fixturesDir, 'WithEnum.tsx'),
+          loader: () => import('./fixtures/WithEnum.js'),
+          name: 'With Enum',
+          description: 'Component with enum props',
+        },
+      },
+    })
+
+    const index = await generateComponentIndex(config)
+    const component = index.components[0]
+
+    // size should have enum values
+    expect(component.props.properties.size).toEqual({
+      type: 'string',
+      title: 'Size',
+      description: 'T-shirt size selection',
+      default: undefined,
+      enum: ['S', 'M', 'L', 'XL'],
+    })
+
+    // theme should have enum values with default
+    expect(component.props.properties.theme).toEqual({
+      type: 'string',
+      title: 'Theme',
+      description: 'Color theme',
+      default: 'light',
+      enum: ['light', 'dark'],
+    })
+
+    // label is a regular string, no enum
+    expect(component.props.properties.label.enum).toBeUndefined()
+  })
 })
 
 describe('defineConfig', () => {
