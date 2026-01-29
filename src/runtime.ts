@@ -9,6 +9,17 @@ if (typeof window !== 'undefined') {
 }
 
 /**
+ * Check if a value is a valid React component.
+ * Handles regular functions, forwardRef, and memo components.
+ */
+function isValidComponent(value: unknown): boolean {
+  if (typeof value === 'function') return true
+  // forwardRef and memo components are objects with $$typeof
+  if (value && typeof value === 'object' && '$$typeof' in value) return true
+  return false
+}
+
+/**
  * Create a render function for standalone component rendering in the browser.
  *
  * @param components - The component map to use for rendering.
@@ -46,9 +57,9 @@ export function createRenderFunction(components: ComponentMap): RenderFunction {
     const Component =
       module.default ||
       moduleRecord[componentName] ||
-      Object.values(moduleRecord).find((exp) => typeof exp === 'function')
+      Object.values(moduleRecord).find((exp) => isValidComponent(exp))
 
-    if (!Component || typeof Component !== 'function') {
+    if (!Component || !isValidComponent(Component)) {
       throw new Error(`Component ${componentName} has no valid export`)
     }
 
