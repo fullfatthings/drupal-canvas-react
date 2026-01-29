@@ -5,6 +5,7 @@ import * as path from 'path'
 import { loadConfig } from './config.js'
 import { writeComponentIndex } from './generate-index.js'
 import { createTsupConfig } from './tsup-config.js'
+import type { CanvasConfig } from './types.js'
 
 const HELP = `
 drupal-canvas-react - Build React components for Drupal Canvas integration
@@ -121,16 +122,12 @@ async function generateIndex(cwd: string) {
   await writeComponentIndex(config, { cwd })
 }
 
-/**
- * Generate the entry file content for bundling.
- */
-function generateEntryCode(config: import('./types.js').CanvasConfig): string {
+function generateEntryCode(config: CanvasConfig): string {
   const idPrefix = config.idPrefix || ''
   const loaderImports: string[] = []
   const componentEntries: string[] = []
 
   for (const [id, entry] of Object.entries(config.components)) {
-    // Extract the import path from the loader function
     const loaderStr = entry.loader.toString()
     const importMatch = loaderStr.match(/import\s*\(\s*['"]([^'"]+)['"]\s*\)/)
 
