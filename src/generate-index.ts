@@ -1,13 +1,14 @@
 import { parse } from 'react-docgen-typescript'
 import * as fs from 'fs'
 import * as path from 'path'
-import type {
-  CanvasConfig,
-  ComponentIndex,
-  ComponentMeta,
-  PropertySchema,
-  SlotDefinition,
-} from './types.js'
+import type { CanvasConfig, ComponentIndex, PropertySchema, SlotDefinition } from './types.js'
+
+interface GenerateIndexOptions {
+  /**
+   * Working directory for resolving paths.
+   */
+  cwd?: string
+}
 
 /**
  * Convert a TypeScript type name to JSON Schema type.
@@ -51,83 +52,6 @@ function parseTitleAndDescription(
 }
 
 /**
- * Extract componentMeta from a source file by parsing the source code.
- * This avoids needing to import .tsx files which Node can't handle natively.
- */
-function extractComponentMeta(sourceCode: string): ComponentMeta | null {
-  // Find the componentMeta export
-  // Handles: export const componentMeta = { ... }
-  // And: export const componentMeta: SomeType = { ... }
-  const match = sourceCode.match(/export\s+const\s+componentMeta(?:\s*:\s*[^=]+)?\s*=\s*(\{)/)
-  if (!match) {
-    return null
-  }
-
-  const startIndex = match.index! + match[0].length - 1 // Position of opening brace
-
-  // Find matching closing brace
-  let braceCount = 0
-  let endIndex = startIndex
-
-  for (let i = startIndex; i < sourceCode.length; i++) {
-    const char = sourceCode[i]
-
-    // Skip string literals
-    if (char === "'" || char === '"' || char === '`') {
-      const quote = char
-      i++
-      while (i < sourceCode.length) {
-        if (sourceCode[i] === quote && sourceCode[i - 1] !== '\\') {
-          break
-        }
-        // Handle template literal expressions
-        if (quote === '`' && sourceCode[i] === '$' && sourceCode[i + 1] === '{') {
-          let nestedBraces = 1
-          i += 2
-          while (i < sourceCode.length && nestedBraces > 0) {
-            if (sourceCode[i] === '{') nestedBraces++
-            else if (sourceCode[i] === '}') nestedBraces--
-            i++
-          }
-          i--
-        }
-        i++
-      }
-      continue
-    }
-
-    if (char === '{') {
-      braceCount++
-    } else if (char === '}') {
-      braceCount--
-      if (braceCount === 0) {
-        endIndex = i
-        break
-      }
-    }
-  }
-
-  const objectLiteral = sourceCode.slice(startIndex, endIndex + 1)
-
-  // Evaluate the object literal safely using Function constructor
-  // This is safe because componentMeta should only contain static data
-  try {
-    const fn = new Function(`return ${objectLiteral}`)
-    return fn() as ComponentMeta
-  } catch (e) {
-    console.warn(`Failed to parse componentMeta: ${e}`)
-    return null
-  }
-}
-
-export interface GenerateIndexOptions {
-  /**
-   * Working directory for resolving paths.
-   */
-  cwd?: string
-}
-
-/**
  * Generate the component index from the component map.
  *
  * @param config - The canvas config.
@@ -167,31 +91,30 @@ export async function generateComponentIndex(
       shouldRemoveUndefinedFromOptional: true,
     })
 
-    if (parsed.length === 0) {
-      console.warn(`No component found in ${filePath}`)
+    const componentDoc = parsed.length > 0 ? parsed[0] : null
+
+    // Check if we have enough info to include this component
+    const hasManualMeta = entry.name || entry.description || entry.props || entry.slots
+    if (!componentDoc && !hasManualMeta) {
+      console.warn(`No component found in ${filePath} (add name/description to config to include)`)
       continue
     }
 
-    const componentDoc = parsed[0]
-
-    // Read the source file and extract componentMeta
-    const sourceCode = fs.readFileSync(filePath, 'utf-8')
-    const explicitMeta = extractComponentMeta(sourceCode)
-
-    // Auto-generate meta from TypeScript if not explicitly provided
-    const meta = explicitMeta ?? {
-      name: componentDoc.displayName || id,
-      description: componentDoc.description || `${componentDoc.displayName || id} component`,
+    // Build meta from available sources (entry > auto-generated)
+    const meta = {
+      name: entry.name || componentDoc?.displayName || id,
+      description: entry.description || componentDoc?.description || `${id} component`,
     }
 
     // Convert props to JSON Schema format, auto-detecting slots
     const properties: Record<string, PropertySchema> = {}
     const slots: Record<string, SlotDefinition> = {}
 
-    for (const [propName, propInfo] of Object.entries(componentDoc.props)) {
-      // Skip props inherited from other files (e.g., React.HTMLAttributes)
+    for (const [propName, propInfo] of Object.entries(componentDoc?.props ?? {})) {
+      // Skip props inherited from node_modules (e.g., React.HTMLAttributes)
+      // Allow props from the same project (src/) even if via type helpers
       const parent = (propInfo as any).parent
-      if (parent && !parent.fileName.endsWith(entry.path)) {
+      if (parent && parent.fileName.includes('node_modules')) {
         continue
       }
 
@@ -214,6 +137,10 @@ export async function generateComponentIndex(
       }
     }
 
+    // Merge manual props/slots from config (manual takes precedence)
+    const mergedProperties = { ...properties, ...entry.props }
+    const mergedSlots = { ...slots, ...entry.slots }
+
     result.push({
       id,
       name: meta.name,
@@ -222,9 +149,9 @@ export async function generateComponentIndex(
       status: 'stable' as const,
       props: {
         type: 'object' as const,
-        properties,
+        properties: mergedProperties,
       },
-      slots: Object.keys(slots).length > 0 ? slots : undefined,
+      slots: Object.keys(mergedSlots).length > 0 ? mergedSlots : undefined,
     })
   }
 

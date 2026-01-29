@@ -12,7 +12,7 @@ function getBuiltinStubsDir(): string {
   return path.join(path.dirname(new URL(import.meta.url).pathname), 'stubs')
 }
 
-export interface CreateTsupConfigOptions {
+interface CreateTsupConfigOptions {
   /**
    * Working directory for resolving paths.
    */

@@ -1,14 +1,4 @@
-import type { ReactNode, ComponentType } from 'react'
-
-/**
- * Metadata for a component that can be rendered in Drupal Canvas.
- */
-export interface ComponentMeta {
-  /** Display name of the component in the Canvas UI */
-  name: string
-  /** Description of the component's purpose */
-  description: string
-}
+import type { ComponentType } from 'react'
 
 /**
  * Definition of a slot that accepts HTML content.
@@ -21,11 +11,10 @@ export interface SlotDefinition {
 }
 
 /**
- * A component module with its default export and optional metadata.
+ * A component module with its default export.
  */
 export interface ComponentModule {
   default: ComponentType<any>
-  componentMeta?: ComponentMeta
 }
 
 /**
@@ -36,6 +25,24 @@ export interface ComponentEntry {
   path: string
   /** Async loader function that returns the component module */
   loader: () => Promise<ComponentModule>
+  /**
+   * Override the component name in the Canvas UI.
+   */
+  name?: string
+  /**
+   * Override the component description.
+   */
+  description?: string
+  /**
+   * Manual prop definitions. Merged with auto-detected props (manual takes precedence).
+   * Use when auto-detection fails or to override detected values.
+   */
+  props?: Record<string, PropertySchema>
+  /**
+   * Manual slot definitions. Merged with auto-detected slots (manual takes precedence).
+   * Use when auto-detection fails or to override detected values.
+   */
+  slots?: Record<string, SlotDefinition>
 }
 
 /**
