@@ -83,7 +83,7 @@ export function createTsupConfig(
     outDir,
     outExtension: () => ({ js: '.js' }),
     noExternal: [/.*/],
-    minify: true,
+    minify: config.minify !== false,
     splitting: false,
     tsconfig: config.tsconfig ? path.resolve(cwd, config.tsconfig) : undefined,
     esbuildOptions(esbuildOptions) {

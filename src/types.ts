@@ -116,6 +116,13 @@ export interface CanvasConfig {
    * @example { 'next/image': './my-stubs/image.tsx' }
    */
   stubs?: Record<string, string>
+
+  /**
+   * Whether to minify the output bundle.
+   * Set to false for easier debugging.
+   * @default true
+   */
+  minify?: boolean
 }
 
 /**

@@ -178,6 +178,9 @@ defineConfig({
 
   // Optional: Module stub overrides
   stubs?: Record<string, string>
+
+  // Optional: Minify the output bundle
+  minify?: boolean  // Default: true
 })
 ```
 
