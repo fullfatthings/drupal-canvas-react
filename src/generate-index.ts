@@ -123,7 +123,7 @@ export async function generateComponentIndex(
       // Auto-detect slots from ReactNode type
       if (isReactNodeType(propInfo.type.name)) {
         slots[propName] = {
-          name: title,
+          title,
           description,
         }
         continue

@@ -4,8 +4,8 @@ import type { ComponentType } from 'react'
  * Definition of a slot that accepts HTML content.
  */
 export interface SlotDefinition {
-  /** Display name of the slot */
-  name: string
+  /** Display title of the slot */
+  title: string
   /** Description of what content the slot accepts */
   description?: string
 }

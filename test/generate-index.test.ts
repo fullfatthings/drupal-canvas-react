@@ -97,11 +97,11 @@ describe('generateComponentIndex', () => {
     // children and footer should be slots (ReactNode)
     expect(component.slots).toBeDefined()
     expect(component.slots!.children).toEqual({
-      name: 'Children',
+      title: 'Children',
       description: 'Main content area',
     })
     expect(component.slots!.footer).toEqual({
-      name: 'Footer',
+      title: 'Footer',
       description: 'Optional footer content',
     })
 
@@ -219,7 +219,7 @@ describe('generateComponentIndex', () => {
           description: 'Simple component',
           slots: {
             content: {
-              name: 'Content',
+              title: 'Content',
               description: 'Manual slot',
             },
           },
@@ -230,7 +230,7 @@ describe('generateComponentIndex', () => {
     const index = await generateComponentIndex(config)
     expect(index.components[0].slots).toEqual({
       content: {
-        name: 'Content',
+        title: 'Content',
         description: 'Manual slot',
       },
     })
