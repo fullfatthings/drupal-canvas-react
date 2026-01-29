@@ -1,0 +1,65 @@
+{
+  "name": "drupal-canvas-react",
+  "version": "0.1.0",
+  "description": "Build React components for Drupal Canvas integration",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "drupal-canvas-react": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "import": "./dist/runtime.js"
+    },
+    "./stubs/image": {
+      "types": "./dist/stubs/image.d.ts",
+      "import": "./dist/stubs/image.js"
+    },
+    "./stubs/link": {
+      "types": "./dist/stubs/link.d.ts",
+      "import": "./dist/stubs/link.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "drupal",
+    "canvas",
+    "react",
+    "nextjs",
+    "components"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "dependencies": {
+    "html-react-parser": "^5.2.0",
+    "react-docgen-typescript": "^2.4.0",
+    "tsup": "^8.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.9.0"
+  }
+}
