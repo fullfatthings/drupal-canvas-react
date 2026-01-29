@@ -353,6 +353,31 @@ describe('generateComponentIndex', () => {
     // label is a regular string, no enum
     expect(component.props.properties.label.enum).toBeUndefined()
   })
+
+  it('skips incompatible prop types (objects and arrays)', async () => {
+    const config = defineConfig({
+      outDir: './dist',
+      components: {
+        WithIncompatible: {
+          path: path.join(fixturesDir, 'WithIncompatible.tsx'),
+          loader: () => import('./fixtures/WithIncompatible.js'),
+          name: 'With Incompatible',
+          description: 'Component with incompatible props',
+        },
+      },
+    })
+
+    const index = await generateComponentIndex(config)
+    const component = index.components[0]
+
+    // Compatible props should be included
+    expect(component.props.properties.title).toBeDefined()
+    expect(component.props.properties.enabled).toBeDefined()
+
+    // Incompatible props (objects, arrays) should be skipped
+    expect(component.props.properties.image).toBeUndefined()
+    expect(component.props.properties.items).toBeUndefined()
+  })
 })
 
 describe('defineConfig', () => {

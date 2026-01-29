@@ -12,11 +12,32 @@ interface GenerateIndexOptions {
 
 /**
  * Convert a TypeScript type name to JSON Schema type.
+ * Returns null if the type is incompatible with Canvas (objects, arrays).
  */
-function convertTypeToJsonSchema(type: string): 'string' | 'number' | 'boolean' {
-  if (type === 'number') return 'number'
-  if (type === 'boolean') return 'boolean'
-  return 'string'
+function convertTypeToJsonSchema(
+  typeName: string
+): { type: 'string' | 'number' | 'boolean'; incompatible?: undefined } | { incompatible: true } {
+  // Primitive types are compatible
+  if (typeName === 'number') return { type: 'number' }
+  if (typeName === 'boolean') return { type: 'boolean' }
+  if (typeName === 'string') return { type: 'string' }
+
+  // Enum/union of string literals is compatible (will be type: 'string' with enum)
+  if (typeName === 'enum' || /^["']/.test(typeName)) return { type: 'string' }
+
+  // Object types (contains { or is a named type that's not a primitive)
+  if (typeName.includes('{') || typeName.includes('[')) {
+    return { incompatible: true }
+  }
+
+  // Named types (like DrupalImage, ImageTypes, etc.) are likely objects
+  // Exception: some types might be string aliases, but we can't know for sure
+  if (/^[A-Z]/.test(typeName)) {
+    return { incompatible: true }
+  }
+
+  // Default to string for anything else
+  return { type: 'string' }
 }
 
 /**
@@ -205,13 +226,22 @@ export async function generateComponentIndex(
         continue
       }
 
+      // Check if the type is compatible with Canvas
+      const typeResult = convertTypeToJsonSchema(propInfo.type.name)
+      if (typeResult.incompatible) {
+        console.warn(
+          `  ⚠ ${id}.${propName}: type "${propInfo.type.name}" is not supported`
+        )
+        continue
+      }
+
       // Extract enum values from source if this looks like a union of string literals
       // Check if type.name contains quoted strings with | (e.g., "L" | "S" | "M")
       const looksLikeEnum = /["'][^"']+["']\s*\|/.test(propInfo.type.name)
       const enumValues = looksLikeEnum ? extractEnumFromSource(sourceCode, propName) : undefined
 
       properties[propName] = {
-        type: convertTypeToJsonSchema(propInfo.type.name),
+        type: typeResult.type,
         title,
         description,
         default: propInfo.defaultValue?.value,
