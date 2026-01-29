@@ -89,6 +89,7 @@ export function createTsupConfig(
     entry: { [baseName]: entryFile },
     format: 'esm',
     platform: 'browser',
+    target: 'es2020',
     outDir,
     outExtension: () => ({ js: '.js' }),
     noExternal: [/.*/],
