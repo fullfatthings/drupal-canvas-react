@@ -32,26 +32,27 @@ function validateConfig(config: unknown, source: string): CanvasConfig {
 }
 
 /**
- * Load config from canvas.config.ts, canvas.config.js, or package.json.
+ * Load config from canvas.config.{mts,ts,mjs,js} or package.json.
  *
  * @param cwd - Working directory to search for config. Defaults to process.cwd().
  * @returns The loaded and validated config.
  */
 export async function loadConfig(cwd: string = process.cwd()): Promise<CanvasConfig> {
-  // Try canvas.config.ts first
-  const tsConfigPath = path.join(cwd, 'canvas.config.ts')
-  if (fs.existsSync(tsConfigPath)) {
-    const module = await import(pathToFileURL(tsConfigPath).href)
-    const config = module.default || module
-    return validateConfig(config, tsConfigPath)
-  }
+  // Try config files in order of preference
+  const configFiles = [
+    'canvas.config.mts', // ESM TypeScript (no warning)
+    'canvas.config.ts',
+    'canvas.config.mjs', // ESM JavaScript
+    'canvas.config.js',
+  ]
 
-  // Try canvas.config.js
-  const jsConfigPath = path.join(cwd, 'canvas.config.js')
-  if (fs.existsSync(jsConfigPath)) {
-    const module = await import(pathToFileURL(jsConfigPath).href)
-    const config = module.default || module
-    return validateConfig(config, jsConfigPath)
+  for (const filename of configFiles) {
+    const configPath = path.join(cwd, filename)
+    if (fs.existsSync(configPath)) {
+      const module = await import(pathToFileURL(configPath).href)
+      const config = module.default || module
+      return validateConfig(config, configPath)
+    }
   }
 
   // Try package.json drupal-canvas field
@@ -64,7 +65,7 @@ export async function loadConfig(cwd: string = process.cwd()): Promise<CanvasCon
   }
 
   throw new Error(
-    `No config found. Create canvas.config.ts, canvas.config.js, or add "drupal-canvas" to package.json`
+    `No config found. Create canvas.config.mts (recommended), canvas.config.ts, or add "drupal-canvas" to package.json`
   )
 }
 
