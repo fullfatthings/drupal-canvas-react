@@ -151,7 +151,8 @@ export interface CanvasConfig {
 }
 
 /**
- * JSON Schema property definition for component props.
+ * JSON Schema property definition for component props (input config).
+ * Use 'image' type for Canvas image picker fields.
  */
 export interface PropertySchema {
   type: 'string' | 'number' | 'boolean' | 'image'
@@ -160,6 +161,18 @@ export interface PropertySchema {
   default?: unknown
   /** Allowed values for enum/union string types */
   enum?: string[]
+}
+
+/**
+ * JSON Schema property definition as output to component-index.json.
+ */
+export interface OutputPropertySchema {
+  type: 'string' | 'number' | 'boolean' | 'object'
+  title: string
+  description?: string
+  default?: unknown
+  enum?: string[]
+  $ref?: string
 }
 
 /**
@@ -173,7 +186,7 @@ export interface ComponentDefinition {
   status: 'experimental' | 'stable' | 'deprecated' | 'obsolete'
   props: {
     type: 'object'
-    properties: Record<string, PropertySchema>
+    properties: Record<string, OutputPropertySchema>
   }
   slots?: Record<string, SlotDefinition>
 }

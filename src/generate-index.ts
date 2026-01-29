@@ -1,7 +1,25 @@
 import { parse } from 'react-docgen-typescript'
 import * as fs from 'fs'
 import * as path from 'path'
-import type { CanvasConfig, ComponentIndex, PropertySchema, SlotDefinition } from './types.js'
+import type { CanvasConfig, ComponentIndex, PropertySchema, OutputPropertySchema, SlotDefinition } from './types.js'
+
+const CANVAS_IMAGE_REF = 'json-schema-definitions://canvas.module/image'
+
+/**
+ * Transform a PropertySchema to OutputPropertySchema for the component index.
+ * Converts 'image' type to Canvas's expected format.
+ */
+function toOutputProperty(prop: PropertySchema): OutputPropertySchema {
+  if (prop.type === 'image') {
+    return {
+      type: 'object',
+      title: prop.title,
+      description: prop.description,
+      $ref: CANVAS_IMAGE_REF,
+    }
+  }
+  return prop as OutputPropertySchema
+}
 
 interface GenerateIndexOptions {
   /**
@@ -261,6 +279,12 @@ export async function generateComponentIndex(
     const propOrder = extractPropOrder(sourceCode)
     const sortedProperties = sortPropertiesBySourceOrder(mergedProperties, propOrder)
 
+    // Transform properties to output format (e.g., image → object with $ref)
+    const outputProperties: Record<string, OutputPropertySchema> = {}
+    for (const [propName, prop] of Object.entries(sortedProperties)) {
+      outputProperties[propName] = toOutputProperty(prop)
+    }
+
     result.push({
       id: idPrefix + id,
       name: meta.name,
@@ -269,7 +293,7 @@ export async function generateComponentIndex(
       status: 'stable' as const,
       props: {
         type: 'object' as const,
-        properties: sortedProperties,
+        properties: outputProperties,
       },
       slots: Object.keys(mergedSlots).length > 0 ? mergedSlots : undefined,
     })
