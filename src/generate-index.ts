@@ -176,11 +176,12 @@ export async function generateComponentIndex(
 
     // Read the source file and extract componentMeta
     const sourceCode = fs.readFileSync(filePath, 'utf-8')
-    const meta = extractComponentMeta(sourceCode)
+    const explicitMeta = extractComponentMeta(sourceCode)
 
-    if (!meta) {
-      console.warn(`No componentMeta found in ${filePath}`)
-      continue
+    // Auto-generate meta from TypeScript if not explicitly provided
+    const meta = explicitMeta ?? {
+      name: componentDoc.displayName || id,
+      description: componentDoc.description || `${componentDoc.displayName || id} component`,
     }
 
     // Convert props to JSON Schema format, auto-detecting slots
