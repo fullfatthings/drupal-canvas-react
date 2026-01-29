@@ -20,12 +20,12 @@ function validateConfig(config: unknown, source: string): CanvasConfig {
 
   const cfg = config as Record<string, unknown>
 
-  if (typeof cfg.componentMap !== 'string') {
-    throw new Error(`Invalid config from ${source}: componentMap is required and must be a string`)
-  }
-
   if (typeof cfg.outDir !== 'string') {
     throw new Error(`Invalid config from ${source}: outDir is required and must be a string`)
+  }
+
+  if (!cfg.components || typeof cfg.components !== 'object') {
+    throw new Error(`Invalid config from ${source}: components is required and must be an object`)
   }
 
   return config as CanvasConfig

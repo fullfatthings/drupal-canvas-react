@@ -19,10 +19,15 @@ export interface CreateTsupConfigOptions {
   cwd?: string
 
   /**
-   * Entry file for the standalone bundle.
-   * @default './standalone.ts' (relative to component map directory)
+   * Entry file path for the standalone bundle.
    */
   entry?: string
+
+  /**
+   * Output filename for the bundle.
+   * @default 'drupal-canvas.js'
+   */
+  outputFilename?: string
 }
 
 /**
@@ -48,9 +53,12 @@ export function createTsupConfig(
   const builtinStubsDir = getBuiltinStubsDir()
 
   // Resolve paths
-  const componentMapDir = path.dirname(path.resolve(cwd, config.componentMap))
-  const entryFile = options.entry || path.join(componentMapDir, 'standalone.ts')
+  const entryFile = options.entry
+  if (!entryFile) {
+    throw new Error('Entry file is required')
+  }
   const outDir = path.resolve(cwd, config.outDir)
+  const outputFilename = options.outputFilename || 'drupal-canvas.js'
 
   // Build alias map
   const alias: Record<string, string> = {
@@ -65,8 +73,11 @@ export function createTsupConfig(
     }
   }
 
+  // Remove .js extension if present for outfile naming
+  const baseName = outputFilename.replace(/\.js$/, '')
+
   return {
-    entry: [entryFile],
+    entry: { [baseName]: entryFile },
     format: 'esm',
     platform: 'browser',
     outDir,

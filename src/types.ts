@@ -8,8 +8,6 @@ export interface ComponentMeta {
   name: string
   /** Description of the component's purpose */
   description: string
-  /** Slot definitions for the component */
-  slots?: Record<string, SlotDefinition>
 }
 
 /**
@@ -50,22 +48,36 @@ export type ComponentMap = Record<string, ComponentEntry>
  */
 export interface CanvasConfig {
   /**
-   * Path to the component map file (relative to config file).
-   * @example './components/component-map.ts'
-   */
-  componentMap: string
-
-  /**
    * Output directory for generated files (relative to config file).
    * @example '../back-end/web/components'
    */
   outDir: string
 
   /**
-   * Category name for components in the Canvas UI.
+   * Component definitions - maps component IDs to their entries.
+   * @example
+   * ```ts
+   * components: {
+   *   TextBlock: {
+   *     path: 'components/organisms/TextBlock/TextBlock.tsx',
+   *     loader: () => import('./components/organisms/TextBlock/TextBlock'),
+   *   },
+   * }
+   * ```
+   */
+  components: ComponentMap
+
+  /**
+   * Default category name for components in the Canvas UI.
    * @default 'Components'
    */
-  category?: string
+  defaultCategory?: string
+
+  /**
+   * Output filename for the bundled JavaScript.
+   * @default 'drupal-canvas.js'
+   */
+  outputFilename?: string
 
   /**
    * Path to CSS input file for Tailwind processing.

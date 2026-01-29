@@ -31,25 +31,31 @@ Examples:
 const CONFIG_TEMPLATE = `import { defineConfig } from 'drupal-canvas-react'
 
 export default defineConfig({
-  // Path to your component map file
-  componentMap: './components/component-map.ts',
-
   // Output directory for generated files
   outDir: '../back-end/web/components',
 
-  // Category name for components in the Canvas UI
-  category: 'My components',
+  // Default category name for components in the Canvas UI
+  defaultCategory: 'My components',
 
-  // Optional: Path to CSS input file
-  // cssInput: './components/standalone.css',
+  // Optional: Output filename (default: 'drupal-canvas.js')
+  // outputFilename: 'drupal-canvas.js',
 
   // Optional: Path to tsconfig for compilation
-  // tsconfig: './components/tsconfig.json',
+  // tsconfig: './tsconfig.json',
 
   // Optional: Custom module stubs
   // stubs: {
   //   'next/image': './my-stubs/image.tsx',
   // },
+
+  // Component definitions
+  components: {
+    // Example component:
+    // TextBlock: {
+    //   path: 'components/organisms/TextBlock/TextBlock.tsx',
+    //   loader: () => import('./components/organisms/TextBlock/TextBlock'),
+    // },
+  },
 })
 `
 
@@ -106,9 +112,8 @@ async function init(cwd: string) {
   fs.writeFileSync(configPath, CONFIG_TEMPLATE)
   console.log(`Created ${configPath}`)
   console.log('\nNext steps:')
-  console.log('1. Edit canvas.config.ts to match your project structure')
-  console.log('2. Create a component map file (see componentMap path)')
-  console.log('3. Run `npx drupal-canvas-react build` to generate the component index')
+  console.log('1. Edit canvas.config.ts to add your components')
+  console.log('2. Run `npx drupal-canvas-react build` to generate the component index and bundle')
 }
 
 async function generateIndex(cwd: string) {
@@ -116,13 +121,66 @@ async function generateIndex(cwd: string) {
   await writeComponentIndex(config, { cwd })
 }
 
+/**
+ * Generate the entry file content for bundling.
+ */
+function generateEntryCode(config: import('./types.js').CanvasConfig): string {
+  const loaderImports: string[] = []
+  const componentEntries: string[] = []
+
+  for (const [id, entry] of Object.entries(config.components)) {
+    // Extract the import path from the loader function
+    const loaderStr = entry.loader.toString()
+    const importMatch = loaderStr.match(/import\s*\(\s*['"]([^'"]+)['"]\s*\)/)
+
+    if (importMatch) {
+      const importPath = importMatch[1]
+      loaderImports.push(`    ${id}: () => import('${importPath}'),`)
+      componentEntries.push(
+        `  ${id}: {\n    path: '${entry.path}',\n    loader: loaders.${id},\n  },`
+      )
+    }
+  }
+
+  return `import { createRenderFunction } from 'drupal-canvas-react/runtime'
+
+const loaders = {
+${loaderImports.join('\n')}
+}
+
+const components = {
+${componentEntries.join('\n')}
+}
+
+export const render = createRenderFunction(components)
+
+if (typeof window !== 'undefined') {
+  ;(window as any).render = render
+}
+`
+}
+
 async function bundle(cwd: string) {
   const config = await loadConfig(cwd)
-  const tsupConfig = createTsupConfig(config, { cwd })
+  const outputFilename = config.outputFilename || 'drupal-canvas.js'
 
-  const tsup = await import('tsup')
-  await tsup.build(tsupConfig)
-  console.log(`Built standalone.js to ${config.outDir}`)
+  // Generate temporary entry file
+  const entryContent = generateEntryCode(config)
+  const tempEntryPath = path.join(cwd, '.drupal-canvas-entry.ts')
+  fs.writeFileSync(tempEntryPath, entryContent)
+
+  try {
+    const tsupConfig = createTsupConfig(config, { cwd, entry: tempEntryPath, outputFilename })
+
+    const tsup = await import('tsup')
+    await tsup.build(tsupConfig)
+    console.log(`Built ${outputFilename} to ${config.outDir}`)
+  } finally {
+    // Clean up temp file
+    if (fs.existsSync(tempEntryPath)) {
+      fs.unlinkSync(tempEntryPath)
+    }
+  }
 }
 
 async function build(cwd: string) {

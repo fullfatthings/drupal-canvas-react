@@ -1,8 +1,13 @@
 import { parse } from 'react-docgen-typescript'
 import * as fs from 'fs'
 import * as path from 'path'
-import { pathToFileURL } from 'url'
-import type { CanvasConfig, ComponentIndex, ComponentMap, ComponentMeta, PropertySchema } from './types.js'
+import type {
+  CanvasConfig,
+  ComponentIndex,
+  ComponentMeta,
+  PropertySchema,
+  SlotDefinition,
+} from './types.js'
 
 /**
  * Convert a TypeScript type name to JSON Schema type.
@@ -129,29 +134,32 @@ export interface GenerateIndexOptions {
  * @param options - Generation options.
  * @returns The generated component index.
  */
+/**
+ * Check if a type string indicates a ReactNode (slot) type.
+ */
+function isReactNodeType(typeName: string): boolean {
+  return (
+    typeName === 'ReactNode' ||
+    typeName.includes('ReactNode') ||
+    typeName === 'React.ReactNode' ||
+    typeName.includes('React.ReactNode')
+  )
+}
+
 export async function generateComponentIndex(
   config: CanvasConfig,
   options: GenerateIndexOptions = {}
 ): Promise<ComponentIndex> {
   const cwd = options.cwd || process.cwd()
-  const category = config.category || 'Components'
+  const category = config.defaultCategory || 'Components'
 
-  // Resolve component map path
-  const componentMapPath = path.resolve(cwd, config.componentMap)
-  const componentMapDir = path.dirname(componentMapPath)
-
-  // Import the component map
-  const componentMapModule = await import(pathToFileURL(componentMapPath).href)
-  const components: ComponentMap = componentMapModule.components || componentMapModule.default
-
-  if (!components || typeof components !== 'object') {
-    throw new Error(`No components export found in ${componentMapPath}`)
-  }
+  // Use components directly from config
+  const components = config.components
 
   const result = []
 
   for (const [id, entry] of Object.entries(components)) {
-    const filePath = path.resolve(componentMapDir, entry.path)
+    const filePath = path.resolve(cwd, entry.path)
 
     // Parse TypeScript props
     const parsed = parse(filePath, {
@@ -175,13 +183,11 @@ export async function generateComponentIndex(
       continue
     }
 
-    // Convert props to JSON Schema format
-    const slotNames = meta.slots ? Object.keys(meta.slots) : []
+    // Convert props to JSON Schema format, auto-detecting slots
     const properties: Record<string, PropertySchema> = {}
+    const slots: Record<string, SlotDefinition> = {}
 
     for (const [propName, propInfo] of Object.entries(componentDoc.props)) {
-      if (slotNames.includes(propName)) continue
-
       // Skip props inherited from other files (e.g., React.HTMLAttributes)
       const parent = (propInfo as any).parent
       if (parent && !parent.fileName.endsWith(entry.path)) {
@@ -189,6 +195,15 @@ export async function generateComponentIndex(
       }
 
       const { title, description } = parseTitleAndDescription(propInfo.description, propName)
+
+      // Auto-detect slots from ReactNode type
+      if (isReactNodeType(propInfo.type.name)) {
+        slots[propName] = {
+          name: title,
+          description,
+        }
+        continue
+      }
 
       properties[propName] = {
         type: convertTypeToJsonSchema(propInfo.type.name),
@@ -208,7 +223,7 @@ export async function generateComponentIndex(
         type: 'object' as const,
         properties,
       },
-      slots: meta.slots,
+      slots: Object.keys(slots).length > 0 ? slots : undefined,
     })
   }
 
