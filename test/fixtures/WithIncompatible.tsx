@@ -1,13 +1,13 @@
-interface ImageType {
-  src: string
-  alt: string
+interface MediaAsset {
+  url: string
+  caption: string
 }
 
 interface WithIncompatibleProps {
   /** Simple string prop */
   title: string
   /** Object prop - should be skipped */
-  image: ImageType
+  asset: MediaAsset
   /** Array prop - should be skipped */
   items: string[]
   /** Another compatible prop */
@@ -19,14 +19,16 @@ interface WithIncompatibleProps {
  */
 export default function WithIncompatible({
   title,
-  image,
+  asset,
   items,
   enabled = false,
 }: WithIncompatibleProps) {
   return (
     <div>
       <h1>{title}</h1>
-      <img src={image.src} alt={image.alt} />
+      <figure>
+        <a href={asset.url}>{asset.caption}</a>
+      </figure>
       <ul>
         {items.map((item, i) => (
           <li key={i}>{item}</li>

@@ -121,4 +121,30 @@ describe('createRenderFunction', () => {
       'Component Hero not found'
     )
   })
+
+  it('applies transformProps to props before rendering', async () => {
+    const components: ComponentMap = {
+      ImageComponent: {
+        path: 'image.tsx',
+        loader: () => Promise.resolve({ default: TestComponent }),
+        transformProps: (props) => ({
+          ...props,
+          // Simulate extracting src from Canvas image object
+          title: (props.image as { src: string })?.src || 'no image',
+        }),
+      },
+    }
+
+    const render = createRenderFunction(components)
+    await render(
+      container,
+      'ImageComponent',
+      { image: { src: 'https://example.com/photo.jpg', alt: 'Photo' } },
+      {}
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('h1')?.textContent).toBe('https://example.com/photo.jpg')
+    })
+  })
 })

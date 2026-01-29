@@ -150,7 +150,7 @@ defineConfig({
 
       // Optional: Manual prop definitions (merged with auto-detected)
       props?: Record<string, {
-        type: 'string' | 'number' | 'boolean'
+        type: 'string' | 'number' | 'boolean' | 'image'
         title: string
         description?: string
         default?: unknown
@@ -161,6 +161,9 @@ defineConfig({
         title: string
         description?: string
       }>
+
+      // Optional: Transform props before passing to component
+      transformProps?: (props: Record<string, unknown>) => Record<string, unknown>
     }
   }
 
@@ -206,6 +209,47 @@ interface MyComponentProps {
   children: ReactNode         // → slot: { title: 'Children', ... }
 }
 ```
+
+## Prop Transforms
+
+Use `transformProps` to adapt Canvas data to your component's expected format. This is useful when:
+
+- Canvas sends objects (like images) but your component expects a string
+- You need to rename props
+- You need to provide defaults or coerce types
+
+```typescript
+defineConfig({
+  components: {
+    Avatar: {
+      path: 'components/Avatar.tsx',
+      loader: () => import('./components/Avatar'),
+      props: {
+        // Tell Canvas to use its image picker
+        imagePath: { type: 'image', title: 'Image' },
+      },
+      // Canvas sends { src, alt, width, height } but component expects a string
+      transformProps: (props) => ({
+        ...props,
+        imagePath: props.imagePath?.src,
+      }),
+    },
+
+    Card: {
+      path: 'components/Card.tsx',
+      loader: () => import('./components/Card'),
+      // Rename props, set defaults, coerce types
+      transformProps: (props) => ({
+        title: props.headline,              // rename
+        count: Number(props.count) || 0,    // coerce + default
+        featured: Boolean(props.featured),  // coerce
+      }),
+    },
+  },
+})
+```
+
+**Note:** Transform functions must be self-contained arrow functions with no external references (they are stringified into the bundle).
 
 ## Next.js Components
 

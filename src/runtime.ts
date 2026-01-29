@@ -69,9 +69,12 @@ export function createRenderFunction(components: ComponentMap): RenderFunction {
       parsedSlots[slotName] = parse(html)
     }
 
+    // Apply transformProps if defined
+    const finalProps = entry.transformProps ? entry.transformProps(props) : props
+
     const el = React.createElement(
       Component as React.ComponentType<Record<string, unknown>>,
-      { ...props, ...parsedSlots }
+      { ...finalProps, ...parsedSlots }
     )
     createRoot(container).render(el)
 

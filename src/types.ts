@@ -48,6 +48,20 @@ export interface ComponentEntry {
    * Use when auto-detection fails or to override detected values.
    */
   slots?: Record<string, SlotDefinition>
+  /**
+   * Transform props before passing to the component.
+   * Use to adapt Canvas data shapes to component expectations.
+   * Must be a self-contained arrow function (no external references).
+   *
+   * @example
+   * ```ts
+   * transformProps: (props) => ({
+   *   ...props,
+   *   imagePath: props.imagePath?.src,
+   * })
+   * ```
+   */
+  transformProps?: (props: Record<string, unknown>) => Record<string, unknown>
 }
 
 /**
@@ -140,7 +154,7 @@ export interface CanvasConfig {
  * JSON Schema property definition for component props.
  */
 export interface PropertySchema {
-  type: 'string' | 'number' | 'boolean'
+  type: 'string' | 'number' | 'boolean' | 'image'
   title: string
   description?: string
   default?: unknown

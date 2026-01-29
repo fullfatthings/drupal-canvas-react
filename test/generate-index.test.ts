@@ -375,9 +375,10 @@ describe('generateComponentIndex', () => {
     expect(component.props.properties.enabled).toBeDefined()
 
     // Incompatible props (objects, arrays) should be skipped
-    expect(component.props.properties.image).toBeUndefined()
+    expect(component.props.properties.asset).toBeUndefined()
     expect(component.props.properties.items).toBeUndefined()
   })
+
 })
 
 describe('defineConfig', () => {

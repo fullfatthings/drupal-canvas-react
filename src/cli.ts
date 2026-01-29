@@ -135,9 +135,17 @@ function generateEntryCode(config: CanvasConfig): string {
       const importPath = importMatch[1]
       const prefixedId = idPrefix + id
       loaderImports.push(`    '${prefixedId}': () => import('${importPath}'),`)
-      componentEntries.push(
-        `  '${prefixedId}': {\n    path: '${entry.path}',\n    loader: loaders['${prefixedId}'],\n  },`
-      )
+
+      // Build component entry with optional transformProps
+      const entryParts = [
+        `    path: '${entry.path}'`,
+        `    loader: loaders['${prefixedId}']`,
+      ]
+      if (entry.transformProps) {
+        entryParts.push(`    transformProps: ${entry.transformProps.toString()}`)
+      }
+
+      componentEntries.push(`  '${prefixedId}': {\n${entryParts.join(',\n')},\n  },`)
     }
   }
 
