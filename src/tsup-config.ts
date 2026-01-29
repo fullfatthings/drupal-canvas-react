@@ -1,6 +1,9 @@
+import { createRequire } from 'module'
 import * as path from 'path'
 import type { Options } from 'tsup'
 import type { CanvasConfig } from './types.js'
+
+const require = createRequire(import.meta.url)
 
 /**
  * Get the path to the built-in stubs directory.
@@ -61,7 +64,11 @@ export function createTsupConfig(
   const outputFilename = options.outputFilename || 'drupal-canvas.js'
 
   // Build alias map
+  // Include react/react-dom to dedupe and prevent multiple React instances
   const alias: Record<string, string> = {
+    react: require.resolve('react'),
+    'react-dom': require.resolve('react-dom'),
+    'react-dom/client': require.resolve('react-dom/client'),
     'next/image': path.join(builtinStubsDir, 'image.js'),
     'next/link': path.join(builtinStubsDir, 'link.js'),
   }
