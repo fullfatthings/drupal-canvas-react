@@ -65,10 +65,12 @@ export function createTsupConfig(
 
   // Build alias map
   // Include react/react-dom to dedupe and prevent multiple React instances
+  // Use package directory (not main file) so sub-imports like react/jsx-runtime resolve
+  const reactDir = path.dirname(require.resolve('react/package.json'))
+  const reactDomDir = path.dirname(require.resolve('react-dom/package.json'))
   const alias: Record<string, string> = {
-    react: require.resolve('react'),
-    'react-dom': require.resolve('react-dom'),
-    'react-dom/client': require.resolve('react-dom/client'),
+    react: reactDir,
+    'react-dom': reactDomDir,
     'next/image': path.join(builtinStubsDir, 'image.js'),
     'next/link': path.join(builtinStubsDir, 'link.js'),
   }
