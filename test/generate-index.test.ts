@@ -128,6 +128,35 @@ describe('generateComponentIndex', () => {
     expect(index.components[0].category).toBe('My Components')
   })
 
+  it('allows per-component category override', async () => {
+    const config = defineConfig({
+      outDir: './dist',
+      defaultCategory: 'Default',
+      components: {
+        Simple: {
+          path: path.join(fixturesDir, 'SimpleComponent.tsx'),
+          loader: () => import('./fixtures/SimpleComponent.js'),
+          name: 'Simple',
+          description: 'Uses default category',
+        },
+        WithProps: {
+          path: path.join(fixturesDir, 'WithProps.tsx'),
+          loader: () => import('./fixtures/WithProps.js'),
+          name: 'With Props',
+          description: 'Has custom category',
+          category: 'Custom Category',
+        },
+      },
+    })
+
+    const index = await generateComponentIndex(config)
+    const simple = index.components.find((c) => c.id === 'Simple')
+    const withProps = index.components.find((c) => c.id === 'WithProps')
+
+    expect(simple?.category).toBe('Default')
+    expect(withProps?.category).toBe('Custom Category')
+  })
+
   it('falls back to component display name when name not provided', async () => {
     const config = defineConfig({
       outDir: './dist',

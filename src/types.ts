@@ -34,6 +34,10 @@ export interface ComponentEntry {
    */
   description?: string
   /**
+   * Override the category for this component.
+   */
+  category?: string
+  /**
    * Manual prop definitions. Merged with auto-detected props (manual takes precedence).
    * Use when auto-detection fails or to override detected values.
    */

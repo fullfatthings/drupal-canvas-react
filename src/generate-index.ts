@@ -75,7 +75,7 @@ export async function generateComponentIndex(
   options: GenerateIndexOptions = {}
 ): Promise<ComponentIndex> {
   const cwd = options.cwd || process.cwd()
-  const category = config.defaultCategory || 'Components'
+  const defaultCategory = config.defaultCategory || 'Components'
 
   // Use components directly from config
   const components = config.components
@@ -144,7 +144,7 @@ export async function generateComponentIndex(
     result.push({
       id,
       name: meta.name,
-      category,
+      category: entry.category || defaultCategory,
       description: meta.description,
       status: 'stable' as const,
       props: {
