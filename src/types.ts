@@ -41,8 +41,9 @@ export interface ComponentEntry {
   /**
    * Manual prop definitions. Merged with auto-detected props (manual takes precedence).
    * Use when auto-detection fails or to override detected values.
+   * Set a prop to `false` to exclude it from the output.
    */
-  props?: Record<string, PropertySchema>
+  props?: Record<string, PropertySchema | false>
   /**
    * Manual slot definitions. Merged with auto-detected slots (manual takes precedence).
    * Use when auto-detection fails or to override detected values.

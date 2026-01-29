@@ -269,11 +269,17 @@ export async function generateComponentIndex(
 
     // Merge manual props/slots from config (manual takes precedence)
     // If a prop is manually defined, remove it from slots (can't be both)
-    const mergedProperties = { ...properties, ...entry.props }
-    const mergedSlots = { ...slots, ...entry.slots }
-    for (const propName of Object.keys(entry.props ?? {})) {
-      delete mergedSlots[propName]
+    const mergedProperties: Record<string, PropertySchema> = { ...properties }
+    for (const [propName, propValue] of Object.entries(entry.props ?? {})) {
+      if (propValue === false) {
+        // Exclude this prop from output
+        delete mergedProperties[propName]
+      } else {
+        mergedProperties[propName] = propValue
+      }
+      delete slots[propName]
     }
+    const mergedSlots = { ...slots, ...entry.slots }
 
     // Sort properties to match source order
     const propOrder = extractPropOrder(sourceCode)

@@ -149,12 +149,13 @@ defineConfig({
       category?: string
 
       // Optional: Manual prop definitions (merged with auto-detected)
+      // Set to false to exclude an auto-detected prop
       props?: Record<string, {
         type: 'string' | 'number' | 'boolean' | 'image'
         title: string
         description?: string
         default?: unknown
-      }>
+      } | false>
 
       // Optional: Manual slot definitions (merged with auto-detected)
       slots?: Record<string, {
@@ -250,6 +251,38 @@ defineConfig({
 ```
 
 **Note:** Transform functions must be self-contained arrow functions with no external references (they are stringified into the bundle).
+
+## Excluding Props
+
+Set a prop to `false` to exclude it from the Canvas UI. This is useful when:
+
+- A prop has a sensible default and doesn't need to be configurable
+- A prop is derived from another prop via `transformProps`
+- A prop isn't useful in the Canvas context (e.g., `className`)
+
+```typescript
+defineConfig({
+  components: {
+    Avatar: {
+      path: 'components/Avatar.tsx',
+      loader: () => import('./components/Avatar'),
+      props: {
+        // Exclude these auto-detected props
+        size: false,
+        alt: false,
+        // Use Canvas image picker for imagePath
+        imagePath: { type: 'image', title: 'Image' },
+      },
+      // Extract alt from the image object instead
+      transformProps: (props) => ({
+        ...props,
+        imagePath: props.imagePath?.src,
+        alt: props.imagePath?.alt,
+      }),
+    },
+  },
+})
+```
 
 ## Next.js Components
 
