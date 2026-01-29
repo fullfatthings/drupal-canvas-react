@@ -125,6 +125,7 @@ async function generateIndex(cwd: string) {
  * Generate the entry file content for bundling.
  */
 function generateEntryCode(config: import('./types.js').CanvasConfig): string {
+  const idPrefix = config.idPrefix || ''
   const loaderImports: string[] = []
   const componentEntries: string[] = []
 
@@ -135,9 +136,10 @@ function generateEntryCode(config: import('./types.js').CanvasConfig): string {
 
     if (importMatch) {
       const importPath = importMatch[1]
-      loaderImports.push(`    ${id}: () => import('${importPath}'),`)
+      const prefixedId = idPrefix + id
+      loaderImports.push(`    '${prefixedId}': () => import('${importPath}'),`)
       componentEntries.push(
-        `  ${id}: {\n    path: '${entry.path}',\n    loader: loaders.${id},\n  },`
+        `  '${prefixedId}': {\n    path: '${entry.path}',\n    loader: loaders['${prefixedId}'],\n  },`
       )
     }
   }

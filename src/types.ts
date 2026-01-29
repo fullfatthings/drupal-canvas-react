@@ -85,6 +85,13 @@ export interface CanvasConfig {
   defaultCategory?: string
 
   /**
+   * Prefix for component IDs in the output.
+   * Helps distinguish components from different projects.
+   * @example 'MyProject' → component IDs become 'MyProjectHero', 'MyProjectCard'
+   */
+  idPrefix?: string
+
+  /**
    * Output filename for the bundled JavaScript.
    * @default 'drupal-canvas.js'
    */

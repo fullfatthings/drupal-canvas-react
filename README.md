@@ -167,6 +167,9 @@ defineConfig({
   // Optional: Default category for components
   defaultCategory?: string  // Default: 'Components'
 
+  // Optional: Prefix for component IDs (useful for multi-project setups)
+  idPrefix?: string  // e.g., 'MyProject' → IDs become 'MyProjectHero'
+
   // Optional: Output filename
   outputFilename?: string  // Default: 'drupal-canvas.js'
 

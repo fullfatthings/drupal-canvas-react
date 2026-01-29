@@ -235,6 +235,35 @@ describe('generateComponentIndex', () => {
       },
     })
   })
+
+  it('prefixes component IDs with idPrefix', async () => {
+    const config = defineConfig({
+      outDir: './dist',
+      idPrefix: 'MyProject',
+      components: {
+        Hero: {
+          path: path.join(fixturesDir, 'SimpleComponent.tsx'),
+          loader: () => import('./fixtures/SimpleComponent.js'),
+          name: 'Hero',
+          description: 'A hero component',
+        },
+        Card: {
+          path: path.join(fixturesDir, 'WithProps.tsx'),
+          loader: () => import('./fixtures/WithProps.js'),
+          name: 'Card',
+          description: 'A card component',
+        },
+      },
+    })
+
+    const index = await generateComponentIndex(config)
+    const ids = index.components.map((c) => c.id)
+
+    expect(ids).toContain('MyProjectHero')
+    expect(ids).toContain('MyProjectCard')
+    expect(ids).not.toContain('Hero')
+    expect(ids).not.toContain('Card')
+  })
 })
 
 describe('defineConfig', () => {

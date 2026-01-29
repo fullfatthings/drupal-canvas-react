@@ -76,6 +76,7 @@ export async function generateComponentIndex(
 ): Promise<ComponentIndex> {
   const cwd = options.cwd || process.cwd()
   const defaultCategory = config.defaultCategory || 'Components'
+  const idPrefix = config.idPrefix || ''
 
   // Use components directly from config
   const components = config.components
@@ -142,7 +143,7 @@ export async function generateComponentIndex(
     const mergedSlots = { ...slots, ...entry.slots }
 
     result.push({
-      id,
+      id: idPrefix + id,
       name: meta.name,
       category: entry.category || defaultCategory,
       description: meta.description,
