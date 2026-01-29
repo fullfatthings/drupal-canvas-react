@@ -33,7 +33,19 @@ export function createRenderFunction(components: ComponentMap): RenderFunction {
       throw new Error(`Component ${componentName} not found`)
     }
 
-    const { default: Component } = await entry.loader()
+    const module = await entry.loader()
+    const moduleRecord = module as unknown as Record<string, unknown>
+
+    // Support both default and named exports
+    // Priority: default export > named export matching component name > first named export
+    const Component =
+      module.default ||
+      moduleRecord[componentName] ||
+      Object.values(moduleRecord).find((exp) => typeof exp === 'function')
+
+    if (!Component) {
+      throw new Error(`Component ${componentName} has no valid export`)
+    }
 
     // Convert HTML strings in slots to React elements
     const parsedSlots: Record<string, React.ReactNode> = {}
