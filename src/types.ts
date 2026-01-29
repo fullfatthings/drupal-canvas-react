@@ -123,6 +123,16 @@ export interface CanvasConfig {
    * @default true
    */
   minify?: boolean
+
+  /**
+   * Additional esbuild plugins for the bundle.
+   * @example
+   * ```ts
+   * import svgr from 'esbuild-plugin-svgr'
+   * esbuildPlugins: [svgr()]
+   * ```
+   */
+  esbuildPlugins?: import('esbuild').Plugin[]
 }
 
 /**

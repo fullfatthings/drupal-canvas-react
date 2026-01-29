@@ -93,6 +93,7 @@ export function createTsupConfig(
     minify: config.minify !== false,
     splitting: false,
     tsconfig: config.tsconfig ? path.resolve(cwd, config.tsconfig) : undefined,
+    esbuildPlugins: config.esbuildPlugins,
     esbuildOptions(esbuildOptions) {
       esbuildOptions.alias = alias
     },
