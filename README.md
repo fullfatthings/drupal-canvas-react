@@ -305,7 +305,9 @@ The package only builds JavaScript. For CSS, run your own build process:
 
 ## Maintainer
 
-Built and maintained by [Full Fat Things](https://www.fullfatthings.com). Get in touch for commercial support.
+[![Full Fat Things](assets/fullfatthings-logo.svg)](https://www.fullfatthings.com)
+
+Get in touch for commercial support.
 
 ## License
 
