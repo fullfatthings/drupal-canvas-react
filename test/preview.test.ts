@@ -4,7 +4,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import React from 'react'
 import { waitFor } from '@testing-library/react'
-import { createRenderFunction } from '../src/runtime.js'
+import { createRenderFunction } from '../src/preview.js'
 import type { ComponentMap } from '../src/types.js'
 
 // Simple test component

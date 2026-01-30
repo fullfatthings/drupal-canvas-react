@@ -5,7 +5,8 @@ export default defineConfig([
   {
     entry: [
       'src/index.ts',
-      'src/runtime.ts',
+      'src/preview.ts',
+      'src/server.ts',
       'src/stubs/image.tsx',
       'src/stubs/link.tsx',
     ],

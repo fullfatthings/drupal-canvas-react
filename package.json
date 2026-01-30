@@ -14,9 +14,13 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./runtime": {
-      "types": "./dist/runtime.d.ts",
-      "import": "./dist/runtime.js"
+    "./preview": {
+      "types": "./dist/preview.d.ts",
+      "import": "./dist/preview.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
     },
     "./stubs/image": {
       "types": "./dist/stubs/image.d.ts",

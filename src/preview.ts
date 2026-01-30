@@ -27,7 +27,7 @@ function isValidComponent(value: unknown): boolean {
  *
  * @example
  * ```ts
- * import { createRenderFunction } from 'drupal-canvas-react/runtime'
+ * import { createRenderFunction } from 'drupal-canvas-react/preview'
  * import { components } from './component-map'
  *
  * export const render = createRenderFunction(components)

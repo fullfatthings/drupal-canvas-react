@@ -2,6 +2,14 @@
 
 Build React components for use in Drupal Canvas.
 
+## Package Exports
+
+| Export | Purpose |
+|--------|---------|
+| `drupal-canvas-react` | Config utilities, types, CLI |
+| `drupal-canvas-react/preview` | Browser-side rendering for Canvas UI preview |
+| `drupal-canvas-react/server` | Server-side rendering for Next.js / RSC |
+
 ## Installation
 
 ```bash
@@ -282,6 +290,125 @@ defineConfig({
     },
   },
 })
+```
+
+## Server-Side Rendering (Next.js / RSC)
+
+Use the `drupal-canvas-react/server` export to render Canvas pages in Next.js or any React Server Components environment.
+
+```typescript
+import {
+  renderCanvasComponents,
+  type DrupalCanvasComponent,
+} from 'drupal-canvas-react/server'
+import canvasConfig from './canvas.config'
+```
+
+### Usage
+
+```tsx
+// app/[...slug]/page.tsx
+import { renderCanvasComponents, type DrupalCanvasComponent } from 'drupal-canvas-react/server'
+import canvasConfig from '@/canvas.config'
+
+interface CanvasPage {
+  title: string
+  components: DrupalCanvasComponent[]
+}
+
+export default async function Page({ params }) {
+  // Fetch page data from Drupal JSON:API
+  const page: CanvasPage = await fetchCanvasPage(params.slug)
+
+  return (
+    <>
+      <h1>{page.title}</h1>
+      {await renderCanvasComponents(page.components, canvasConfig.components)}
+    </>
+  )
+}
+```
+
+### How It Works
+
+The `renderCanvasComponents` function:
+
+1. Takes a flat array of `DrupalCanvasComponent` objects from Drupal's JSON:API
+2. Builds a tree based on `parent_uuid` relationships
+3. Recursively renders components using the loaders from your config
+4. Places child components into their designated slots
+
+### Component Data Structure
+
+Drupal Canvas sends components as a flat array:
+
+```typescript
+interface DrupalCanvasComponent {
+  uuid: string           // Unique identifier
+  parent_uuid: string | null  // Parent component (null = root)
+  slot: string | null    // Which slot to render in (null = 'children')
+  component_id: string   // e.g., 'MyProject.text_block'
+  inputs: string         // JSON-encoded props
+}
+```
+
+The `component_id` is transformed to match your config keys:
+- `MyProject.text_block` → `TextBlock`
+- `MyProject.card_grid` → `CardGrid`
+
+### Full Example
+
+```tsx
+// canvas.config.ts
+import { defineConfig } from 'drupal-canvas-react'
+
+export default defineConfig({
+  outDir: '../drupal/web/components',
+  idPrefix: 'MyProject',
+  components: {
+    Container: {
+      path: 'components/Container.tsx',
+      loader: () => import('./components/Container'),
+    },
+    TextBlock: {
+      path: 'components/TextBlock.tsx',
+      loader: () => import('./components/TextBlock'),
+    },
+    Card: {
+      path: 'components/Card.tsx',
+      loader: () => import('./components/Card'),
+      transformProps: (props) => ({
+        ...props,
+        image: props.image?.src,
+      }),
+    },
+  },
+})
+
+// components/drupal/CanvasPage.tsx
+import { renderCanvasComponents, type DrupalCanvasComponent } from 'drupal-canvas-react/server'
+import config from '@/canvas.config'
+
+interface CanvasPageProps {
+  page: {
+    title: string
+    components: DrupalCanvasComponent[]
+  }
+}
+
+export async function CanvasPage({ page }: CanvasPageProps) {
+  return (
+    <>
+      <header>
+        <h1>{page.title}</h1>
+      </header>
+      <main>
+        {await renderCanvasComponents(page.components, config.components)}
+      </main>
+      <footer>...</footer>
+    </>
+  )
+}
 ```
 
 ## Next.js Components

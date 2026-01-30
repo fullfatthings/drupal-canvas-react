@@ -149,7 +149,7 @@ function generateEntryCode(config: CanvasConfig): string {
     }
   }
 
-  return `import { createRenderFunction } from 'drupal-canvas-react/runtime'
+  return `import { createRenderFunction } from 'drupal-canvas-react/preview'
 
 const loaders = {
 ${loaderImports.join('\n')}
