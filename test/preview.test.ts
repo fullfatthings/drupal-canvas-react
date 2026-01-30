@@ -2,36 +2,15 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import React from 'react'
 import { waitFor } from '@testing-library/react'
 import { createRenderFunction } from '../src/preview.js'
 import type { ComponentMap } from '../src/types.js'
-
-// Simple test component
-function TestComponent({ title, count }: { title: string; count?: number }) {
-  return React.createElement(
-    'div',
-    { 'data-testid': 'test-component' },
-    React.createElement('h1', null, title),
-    count !== undefined && React.createElement('span', null, `Count: ${count}`)
-  )
-}
-
-// Component with slots (children)
-function SlotComponent({
-  heading,
-  children,
-}: {
-  heading: string
-  children?: React.ReactNode
-}) {
-  return React.createElement(
-    'article',
-    { 'data-testid': 'slot-component' },
-    React.createElement('h2', null, heading),
-    React.createElement('div', { 'data-testid': 'slot-content' }, children)
-  )
-}
+import {
+  TestComponent,
+  SlotComponent,
+  componentEntry,
+  testComponentMap,
+} from './fixtures/render-components.js'
 
 describe('createRenderFunction', () => {
   let container: HTMLElement
@@ -46,14 +25,7 @@ describe('createRenderFunction', () => {
   })
 
   it('renders a component with props', async () => {
-    const components: ComponentMap = {
-      Test: {
-        path: 'test.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
-      },
-    }
-
-    const render = createRenderFunction(components)
+    const render = createRenderFunction(testComponentMap)
     await render(container, 'Test', { title: 'Hello World', count: 42 }, {})
 
     await waitFor(() => {
@@ -63,14 +35,7 @@ describe('createRenderFunction', () => {
   })
 
   it('throws when component not found', async () => {
-    const components: ComponentMap = {
-      Test: {
-        path: 'test.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
-      },
-    }
-
-    const render = createRenderFunction(components)
+    const render = createRenderFunction(testComponentMap)
 
     await expect(render(container, 'NonExistent', {}, {})).rejects.toThrow(
       'Component NonExistent not found'
@@ -78,14 +43,7 @@ describe('createRenderFunction', () => {
   })
 
   it('renders slots from HTML strings', async () => {
-    const components: ComponentMap = {
-      Slot: {
-        path: 'slot.tsx',
-        loader: () => Promise.resolve({ default: SlotComponent }),
-      },
-    }
-
-    const render = createRenderFunction(components)
+    const render = createRenderFunction(testComponentMap)
     await render(
       container,
       'Slot',
@@ -103,10 +61,7 @@ describe('createRenderFunction', () => {
 
   it('works with prefixed component IDs', async () => {
     const components: ComponentMap = {
-      MyProjectHero: {
-        path: 'components/Hero.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
-      },
+      MyProjectHero: componentEntry(TestComponent),
     }
 
     const render = createRenderFunction(components)
@@ -125,11 +80,9 @@ describe('createRenderFunction', () => {
   it('applies transformProps to props before rendering', async () => {
     const components: ComponentMap = {
       ImageComponent: {
-        path: 'image.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        ...componentEntry(TestComponent),
         transformProps: (props) => ({
           ...props,
-          // Simulate extracting src from Canvas image object
           title: (props.image as { src: string })?.src || 'no image',
         }),
       },

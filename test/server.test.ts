@@ -1,80 +1,24 @@
 import { describe, it, expect } from 'vitest'
-import React, { isValidElement, type ReactNode } from 'react'
-import { renderCanvasComponents, type DrupalCanvasComponent } from '../src/server.js'
+import { isValidElement, type ReactNode } from 'react'
+import { renderCanvasComponents } from '../src/server.js'
 import type { ComponentMap } from '../src/types.js'
-
-// Simple test component
-function TestComponent({ title, count }: { title: string; count?: number }) {
-  return React.createElement(
-    'div',
-    { 'data-testid': 'test-component' },
-    React.createElement('h1', null, title),
-    count !== undefined && React.createElement('span', null, `Count: ${count}`)
-  )
-}
-
-// Component with slots (children)
-function SlotComponent({
-  heading,
-  children,
-}: {
-  heading: string
-  children?: ReactNode
-}) {
-  return React.createElement(
-    'article',
-    { 'data-testid': 'slot-component' },
-    React.createElement('h2', null, heading),
-    React.createElement('div', { 'data-testid': 'slot-content' }, children)
-  )
-}
-
-// Component with multiple slots
-function MultiSlotComponent({
-  title,
-  header,
-  footer,
-}: {
-  title: string
-  header?: ReactNode
-  footer?: ReactNode
-}) {
-  return React.createElement(
-    'section',
-    null,
-    React.createElement('div', { 'data-testid': 'header-slot' }, header),
-    React.createElement('h1', null, title),
-    React.createElement('div', { 'data-testid': 'footer-slot' }, footer)
-  )
-}
-
-function createComponent(
-  id: string,
-  componentId: string,
-  inputs: Record<string, unknown>,
-  parentUuid: string | null = null,
-  slot: string | null = null
-): DrupalCanvasComponent {
-  return {
-    uuid: id,
-    parent_uuid: parentUuid,
-    slot,
-    component_id: componentId,
-    inputs: JSON.stringify(inputs),
-  }
-}
+import {
+  TestComponent,
+  SlotComponent,
+  MultiSlotComponent,
+  componentEntry,
+  testComponentMap,
+  createCanvasComponent,
+} from './fixtures/render-components.js'
 
 describe('renderCanvasComponents', () => {
   it('renders a single root component', async () => {
     const components: ComponentMap = {
-      Test: {
-        path: 'test.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
-      },
+      Test: componentEntry(TestComponent),
     }
 
-    const canvasComponents: DrupalCanvasComponent[] = [
-      createComponent('1', 'Project.test', { title: 'Hello World', count: 42 }),
+    const canvasComponents = [
+      createCanvasComponent('1', 'Project.test', { title: 'Hello World', count: 42 }),
     ]
 
     const result = await renderCanvasComponents(canvasComponents, components)
@@ -88,43 +32,25 @@ describe('renderCanvasComponents', () => {
   })
 
   it('renders multiple root components', async () => {
-    const components: ComponentMap = {
-      Test: {
-        path: 'test.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
-      },
-    }
-
-    const canvasComponents: DrupalCanvasComponent[] = [
-      createComponent('1', 'Project.test', { title: 'First' }),
-      createComponent('2', 'Project.test', { title: 'Second' }),
-      createComponent('3', 'Project.test', { title: 'Third' }),
+    const canvasComponents = [
+      createCanvasComponent('1', 'Project.test', { title: 'First' }),
+      createCanvasComponent('2', 'Project.test', { title: 'Second' }),
+      createCanvasComponent('3', 'Project.test', { title: 'Third' }),
     ]
 
-    const result = await renderCanvasComponents(canvasComponents, components)
+    const result = await renderCanvasComponents(canvasComponents, testComponentMap)
 
     expect(Array.isArray(result)).toBe(true)
     expect((result as ReactNode[]).length).toBe(3)
   })
 
   it('renders nested components in slots', async () => {
-    const components: ComponentMap = {
-      Slot: {
-        path: 'slot.tsx',
-        loader: () => Promise.resolve({ default: SlotComponent }),
-      },
-      Test: {
-        path: 'test.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
-      },
-    }
-
-    const canvasComponents: DrupalCanvasComponent[] = [
-      createComponent('parent', 'Project.slot', { heading: 'Parent' }),
-      createComponent('child', 'Project.test', { title: 'Child' }, 'parent', 'children'),
+    const canvasComponents = [
+      createCanvasComponent('parent', 'Project.slot', { heading: 'Parent' }),
+      createCanvasComponent('child', 'Project.test', { title: 'Child' }, 'parent', 'children'),
     ]
 
-    const result = await renderCanvasComponents(canvasComponents, components)
+    const result = await renderCanvasComponents(canvasComponents, testComponentMap)
 
     expect((result as ReactNode[]).length).toBe(1)
     const parent = (result as ReactNode[])[0] as React.ReactElement
@@ -134,24 +60,13 @@ describe('renderCanvasComponents', () => {
   })
 
   it('renders components in named slots', async () => {
-    const components: ComponentMap = {
-      MultiSlot: {
-        path: 'multi.tsx',
-        loader: () => Promise.resolve({ default: MultiSlotComponent }),
-      },
-      Test: {
-        path: 'test.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
-      },
-    }
-
-    const canvasComponents: DrupalCanvasComponent[] = [
-      createComponent('parent', 'Project.multi_slot', { title: 'Main' }),
-      createComponent('header-child', 'Project.test', { title: 'Header Content' }, 'parent', 'header'),
-      createComponent('footer-child', 'Project.test', { title: 'Footer Content' }, 'parent', 'footer'),
+    const canvasComponents = [
+      createCanvasComponent('parent', 'Project.multi_slot', { title: 'Main' }),
+      createCanvasComponent('header-child', 'Project.test', { title: 'Header Content' }, 'parent', 'header'),
+      createCanvasComponent('footer-child', 'Project.test', { title: 'Footer Content' }, 'parent', 'footer'),
     ]
 
-    const result = await renderCanvasComponents(canvasComponents, components)
+    const result = await renderCanvasComponents(canvasComponents, testComponentMap)
 
     const parent = (result as ReactNode[])[0] as React.ReactElement
     expect(parent.props.title).toBe('Main')
@@ -161,19 +76,13 @@ describe('renderCanvasComponents', () => {
 
   it('transforms component_id to component key (snake_case to PascalCase)', async () => {
     const components: ComponentMap = {
-      TextBlock: {
-        path: 'text-block.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
-      },
-      CardGrid: {
-        path: 'card-grid.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
-      },
+      TextBlock: componentEntry(TestComponent),
+      CardGrid: componentEntry(TestComponent),
     }
 
-    const canvasComponents: DrupalCanvasComponent[] = [
-      createComponent('1', 'Project.text_block', { title: 'Text' }),
-      createComponent('2', 'Project.card_grid', { title: 'Grid' }),
+    const canvasComponents = [
+      createCanvasComponent('1', 'Project.text_block', { title: 'Text' }),
+      createCanvasComponent('2', 'Project.card_grid', { title: 'Grid' }),
     ]
 
     const result = await renderCanvasComponents(canvasComponents, components)
@@ -182,18 +91,11 @@ describe('renderCanvasComponents', () => {
   })
 
   it('throws when component not found', async () => {
-    const components: ComponentMap = {
-      Test: {
-        path: 'test.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
-      },
-    }
-
-    const canvasComponents: DrupalCanvasComponent[] = [
-      createComponent('1', 'Project.nonexistent', { title: 'Test' }),
+    const canvasComponents = [
+      createCanvasComponent('1', 'Project.nonexistent', { title: 'Test' }),
     ]
 
-    await expect(renderCanvasComponents(canvasComponents, components)).rejects.toThrow(
+    await expect(renderCanvasComponents(canvasComponents, testComponentMap)).rejects.toThrow(
       'Component "Nonexistent" not found in component map'
     )
   })
@@ -206,8 +108,8 @@ describe('renderCanvasComponents', () => {
       },
     }
 
-    const canvasComponents: DrupalCanvasComponent[] = [
-      createComponent('1', 'Project.test', { title: 'Test' }),
+    const canvasComponents = [
+      createCanvasComponent('1', 'Project.test', { title: 'Test' }),
     ]
 
     await expect(renderCanvasComponents(canvasComponents, components)).rejects.toThrow(
@@ -218,8 +120,7 @@ describe('renderCanvasComponents', () => {
   it('applies transformProps before rendering', async () => {
     const components: ComponentMap = {
       Test: {
-        path: 'test.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        ...componentEntry(TestComponent),
         transformProps: (props) => ({
           title: (props.image as { src: string })?.src || 'no image',
           count: 99,
@@ -227,8 +128,8 @@ describe('renderCanvasComponents', () => {
       },
     }
 
-    const canvasComponents: DrupalCanvasComponent[] = [
-      createComponent('1', 'Project.test', {
+    const canvasComponents = [
+      createCanvasComponent('1', 'Project.test', {
         image: { src: 'https://example.com/photo.jpg' },
       }),
     ]
@@ -241,28 +142,18 @@ describe('renderCanvasComponents', () => {
   })
 
   it('returns empty array for empty input', async () => {
-    const components: ComponentMap = {}
-    const canvasComponents: DrupalCanvasComponent[] = []
-
-    const result = await renderCanvasComponents(canvasComponents, components)
+    const result = await renderCanvasComponents([], {})
 
     expect(Array.isArray(result)).toBe(true)
     expect((result as ReactNode[]).length).toBe(0)
   })
 
   it('sets key prop on rendered elements', async () => {
-    const components: ComponentMap = {
-      Test: {
-        path: 'test.tsx',
-        loader: () => Promise.resolve({ default: TestComponent }),
-      },
-    }
-
-    const canvasComponents: DrupalCanvasComponent[] = [
-      createComponent('uuid-123', 'Project.test', { title: 'Test' }),
+    const canvasComponents = [
+      createCanvasComponent('uuid-123', 'Project.test', { title: 'Test' }),
     ]
 
-    const result = await renderCanvasComponents(canvasComponents, components)
+    const result = await renderCanvasComponents(canvasComponents, testComponentMap)
 
     const element = (result as ReactNode[])[0] as React.ReactElement
     expect(element.key).toBe('uuid-123')
