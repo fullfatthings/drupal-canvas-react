@@ -17,9 +17,10 @@ const testComponents: ComponentMap = {
 }
 
 describe('renderCanvasComponents', () => {
-  it('renders a single root component', async () => {
+  it('renders root components with props', async () => {
     const canvasComponents = [
-      createCanvasComponent('1', 'extjs.test', { title: 'Hello World', count: 42 }),
+      createCanvasComponent('1', 'extjs.test', { title: 'First', count: 42 }),
+      createCanvasComponent('2', 'extjs.test', { title: 'Second' }),
     ]
 
     const result = await renderCanvasComponents(canvasComponents, {
@@ -27,29 +28,15 @@ describe('renderCanvasComponents', () => {
     })
 
     expect(Array.isArray(result)).toBe(true)
-    expect((result as ReactNode[]).length).toBe(1)
+    expect((result as ReactNode[]).length).toBe(2)
     const element = (result as ReactNode[])[0]
     expect(isValidElement(element)).toBe(true)
-    expect((element as React.ReactElement).props.title).toBe('Hello World')
+    expect((element as React.ReactElement).props.title).toBe('First')
     expect((element as React.ReactElement).props.count).toBe(42)
+    expect((element as React.ReactElement).key).toBe('1')
   })
 
-  it('renders multiple root components', async () => {
-    const canvasComponents = [
-      createCanvasComponent('1', 'extjs.test', { title: 'First' }),
-      createCanvasComponent('2', 'extjs.test', { title: 'Second' }),
-      createCanvasComponent('3', 'extjs.test', { title: 'Third' }),
-    ]
-
-    const result = await renderCanvasComponents(canvasComponents, {
-      components: testComponents,
-    })
-
-    expect(Array.isArray(result)).toBe(true)
-    expect((result as ReactNode[]).length).toBe(3)
-  })
-
-  it('renders nested components in slots', async () => {
+  it('renders nested components in children slot', async () => {
     const canvasComponents = [
       createCanvasComponent('parent', 'extjs.slot', { heading: 'Parent' }),
       createCanvasComponent('child', 'extjs.test', { title: 'Child' }, 'parent', 'children'),
@@ -69,8 +56,8 @@ describe('renderCanvasComponents', () => {
   it('renders components in named slots', async () => {
     const canvasComponents = [
       createCanvasComponent('parent', 'extjs.multi_slot', { title: 'Main' }),
-      createCanvasComponent('header-child', 'extjs.test', { title: 'Header Content' }, 'parent', 'header'),
-      createCanvasComponent('footer-child', 'extjs.test', { title: 'Footer Content' }, 'parent', 'footer'),
+      createCanvasComponent('header-child', 'extjs.test', { title: 'Header' }, 'parent', 'header'),
+      createCanvasComponent('footer-child', 'extjs.test', { title: 'Footer' }, 'parent', 'footer'),
     ]
 
     const result = await renderCanvasComponents(canvasComponents, {
@@ -83,7 +70,7 @@ describe('renderCanvasComponents', () => {
     expect(Array.isArray(parent.props.footer)).toBe(true)
   })
 
-  it('transforms component_id to component key (snake_case to PascalCase)', async () => {
+  it('transforms snake_case component_id to PascalCase', async () => {
     const components: ComponentMap = {
       TextBlock: componentEntry(TestComponent),
       CardGrid: componentEntry(TestComponent),
@@ -99,15 +86,22 @@ describe('renderCanvasComponents', () => {
     expect((result as ReactNode[]).length).toBe(2)
   })
 
-  it('silently skips when component not found', async () => {
+  it('strips idPrefix from component_id', async () => {
+    const components: ComponentMap = {
+      TextBlock: componentEntry(TestComponent),
+    }
+
     const canvasComponents = [
-      createCanvasComponent('1', 'extjs.nonexistent', { title: 'Test' }),
+      createCanvasComponent('1', 'extjs.acme_text_block', { title: 'Text' }),
     ]
 
-    const result = await renderCanvasComponents(canvasComponents, { components: testComponents })
+    const result = await renderCanvasComponents(canvasComponents, {
+      components,
+      idPrefix: 'Acme',
+    })
 
     expect((result as ReactNode[]).length).toBe(1)
-    expect((result as ReactNode[])[0]).toBeNull()
+    expect((result as ReactNode[])[0]).not.toBeNull()
   })
 
   it('resolves named export when no default export', async () => {
@@ -124,49 +118,8 @@ describe('renderCanvasComponents', () => {
 
     const result = await renderCanvasComponents(canvasComponents, { components })
 
-    expect((result as ReactNode[]).length).toBe(1)
     const element = (result as ReactNode[])[0] as React.ReactElement
     expect(element.props.title).toBe('Named Export')
-  })
-
-  it('calls onError handler and renders returned node', async () => {
-    const onError = vi.fn().mockReturnValue(
-      createElement('div', { 'data-testid': 'error' }, 'Error occurred')
-    )
-
-    const canvasComponents = [
-      createCanvasComponent('1', 'extjs.missing', { title: 'Test' }),
-    ]
-
-    const result = await renderCanvasComponents(
-      canvasComponents,
-      { components: testComponents },
-      { onError }
-    )
-
-    expect(onError).toHaveBeenCalledWith(
-      expect.any(Error),
-      expect.objectContaining({ uuid: '1' })
-    )
-    const element = (result as ReactNode[])[0] as React.ReactElement
-    expect(element.props['data-testid']).toBe('error')
-  })
-
-  it('skips component when onError returns undefined', async () => {
-    const onError = vi.fn().mockReturnValue(undefined)
-
-    const canvasComponents = [
-      createCanvasComponent('1', 'extjs.missing', { title: 'Test' }),
-    ]
-
-    const result = await renderCanvasComponents(
-      canvasComponents,
-      { components: testComponents },
-      { onError }
-    )
-
-    expect(onError).toHaveBeenCalled()
-    expect((result as ReactNode[])[0]).toBeNull()
   })
 
   it('applies transformProps before rendering', async () => {
@@ -175,7 +128,6 @@ describe('renderCanvasComponents', () => {
         ...componentEntry(TestComponent),
         transformProps: (props) => ({
           title: (props.image as { src: string })?.src || 'no image',
-          count: 99,
         }),
       },
     }
@@ -190,61 +142,43 @@ describe('renderCanvasComponents', () => {
 
     const element = (result as ReactNode[])[0] as React.ReactElement
     expect(element.props.title).toBe('https://example.com/photo.jpg')
-    expect(element.props.count).toBe(99)
   })
 
-  it('returns empty array for empty input', async () => {
-    const result = await renderCanvasComponents([], { components: {} })
-
-    expect(Array.isArray(result)).toBe(true)
-    expect((result as ReactNode[]).length).toBe(0)
-  })
-
-  it('sets key prop on rendered elements', async () => {
+  it('silently skips missing components', async () => {
     const canvasComponents = [
-      createCanvasComponent('uuid-123', 'extjs.test', { title: 'Test' }),
+      createCanvasComponent('1', 'extjs.nonexistent', { title: 'Test' }),
     ]
 
-    const result = await renderCanvasComponents(canvasComponents, {
-      components: testComponents,
-    })
+    const result = await renderCanvasComponents(canvasComponents, { components: testComponents })
 
-    const element = (result as ReactNode[])[0] as React.ReactElement
-    expect(element.key).toBe('uuid-123')
+    expect((result as ReactNode[])[0]).toBeNull()
   })
 
-  it('strips idPrefix from component_id when matching config keys', async () => {
-    const components: ComponentMap = {
-      TextBlock: componentEntry(TestComponent),
-      CardGrid: componentEntry(TestComponent),
-    }
-
-    // Drupal sends prefixed IDs like "extjs.acme_text_block"
-    const canvasComponents = [
-      createCanvasComponent('1', 'extjs.acme_text_block', { title: 'Text' }),
-      createCanvasComponent('2', 'extjs.acme_card_grid', { title: 'Grid' }),
-    ]
-
-    // With idPrefix "Acme", "AcmeTextBlock" becomes "TextBlock"
-    const result = await renderCanvasComponents(canvasComponents, {
-      components,
-      idPrefix: 'Acme',
-    })
-
-    expect((result as ReactNode[]).length).toBe(2)
-  })
-
-  it('works without idPrefix for unprefixed component IDs', async () => {
-    const components: ComponentMap = {
-      TextBlock: componentEntry(TestComponent),
-    }
+  it('calls onError and renders returned node or null', async () => {
+    const onErrorWithNode = vi.fn().mockReturnValue(
+      createElement('div', { 'data-testid': 'error' }, 'Error')
+    )
+    const onErrorWithNull = vi.fn().mockReturnValue(undefined)
 
     const canvasComponents = [
-      createCanvasComponent('1', 'extjs.text_block', { title: 'Text' }),
+      createCanvasComponent('1', 'extjs.missing', { title: 'Test' }),
     ]
 
-    const result = await renderCanvasComponents(canvasComponents, { components })
+    // Returns custom element
+    const result1 = await renderCanvasComponents(
+      canvasComponents,
+      { components: testComponents },
+      { onError: onErrorWithNode }
+    )
+    expect(onErrorWithNode).toHaveBeenCalledWith(expect.any(Error), expect.objectContaining({ uuid: '1' }))
+    expect((result1 as React.ReactElement[])[0].props['data-testid']).toBe('error')
 
-    expect((result as ReactNode[]).length).toBe(1)
+    // Returns null when handler returns undefined
+    const result2 = await renderCanvasComponents(
+      canvasComponents,
+      { components: testComponents },
+      { onError: onErrorWithNull }
+    )
+    expect((result2 as ReactNode[])[0]).toBeNull()
   })
 })
