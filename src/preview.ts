@@ -2,21 +2,11 @@ import parse from 'html-react-parser'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import type { ComponentMap, RenderFunction } from './types.js'
+import { resolveComponent } from './utils.js'
 
 // Expose React globally for components using classic JSX transform
 if (typeof window !== 'undefined') {
   ;(window as any).React = React
-}
-
-/**
- * Check if a value is a valid React component.
- * Handles regular functions, forwardRef, and memo components.
- */
-function isValidComponent(value: unknown): boolean {
-  if (typeof value === 'function') return true
-  // forwardRef and memo components are objects with $$typeof
-  if (value && typeof value === 'object' && '$$typeof' in value) return true
-  return false
 }
 
 /**
@@ -49,19 +39,7 @@ export function createRenderFunction(components: ComponentMap): RenderFunction {
       throw new Error(`Component ${componentName} not found`)
     }
 
-    const module = await entry.loader()
-    const moduleRecord = module as unknown as Record<string, unknown>
-
-    // Support both default and named exports
-    // Priority: default export > named export matching component name > first named export
-    const Component =
-      module.default ||
-      moduleRecord[componentName] ||
-      Object.values(moduleRecord).find((exp) => isValidComponent(exp))
-
-    if (!Component || !isValidComponent(Component)) {
-      throw new Error(`Component ${componentName} has no valid export`)
-    }
+    const Component = await resolveComponent(entry, componentName)
 
     // Convert HTML strings in slots to React elements
     const parsedSlots: Record<string, React.ReactNode> = {}

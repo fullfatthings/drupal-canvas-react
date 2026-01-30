@@ -309,7 +309,7 @@ import canvasConfig from './canvas.config'
 ```tsx
 // app/[...slug]/page.tsx
 import { renderCanvasComponents, type DrupalCanvasComponent } from 'drupal-canvas-react/server'
-import canvasConfig from '@/canvas.config'
+import config from '@/canvas.config'
 
 interface CanvasPage {
   title: string
@@ -323,7 +323,7 @@ export default async function Page({ params }) {
   return (
     <>
       <h1>{page.title}</h1>
-      {await renderCanvasComponents(page.components, canvasConfig.components)}
+      {await renderCanvasComponents(page.components, config)}
     </>
   )
 }
@@ -337,6 +337,29 @@ The `renderCanvasComponents` function:
 2. Builds a tree based on `parent_uuid` relationships
 3. Recursively renders components using the loaders from your config
 4. Places child components into their designated slots
+
+### Error Handling
+
+By default, if a component fails to render (not found, no valid export, etc.), it is silently skipped. Use `onError` to log errors or render a placeholder:
+
+```tsx
+import { renderCanvasComponents, type ComponentErrorHandler } from 'drupal-canvas-react/server'
+
+const handleError: ComponentErrorHandler = (error, component) => {
+  console.error(`Failed to render ${component.component_id}:`, error.message)
+
+  // Return a placeholder element
+  return (
+    <div style={{ padding: '1rem', background: '#fee', border: '1px solid #c00' }}>
+      Component error: {error.message}
+    </div>
+  )
+
+  // Or return null/undefined to skip the component
+}
+
+await renderCanvasComponents(page.components, config, { onError: handleError })
+```
 
 ### Component Data Structure
 
@@ -352,9 +375,9 @@ interface DrupalCanvasComponent {
 }
 ```
 
-The `component_id` is transformed to match your config keys:
-- `MyProject.text_block` → `TextBlock`
-- `MyProject.card_grid` → `CardGrid`
+The `component_id` is transformed to match your config keys. If you use `idPrefix` in your config, it's automatically stripped:
+- `extjs.my_project_text_block` with `idPrefix: 'MyProject'` → `TextBlock`
+- `extjs.text_block` without idPrefix → `TextBlock`
 
 ### Full Example
 
@@ -403,7 +426,7 @@ export async function CanvasPage({ page }: CanvasPageProps) {
         <h1>{page.title}</h1>
       </header>
       <main>
-        {await renderCanvasComponents(page.components, config.components)}
+        {await renderCanvasComponents(page.components, config)}
       </main>
       <footer>...</footer>
     </>

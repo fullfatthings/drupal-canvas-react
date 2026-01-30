@@ -9,8 +9,12 @@ import {
   TestComponent,
   SlotComponent,
   componentEntry,
-  testComponentMap,
 } from './fixtures/render-components.js'
+
+const testComponents: ComponentMap = {
+  Test: componentEntry(TestComponent),
+  Slot: componentEntry(SlotComponent),
+}
 
 describe('createRenderFunction', () => {
   let container: HTMLElement
@@ -25,7 +29,7 @@ describe('createRenderFunction', () => {
   })
 
   it('renders a component with props', async () => {
-    const render = createRenderFunction(testComponentMap)
+    const render = createRenderFunction(testComponents)
     await render(container, 'Test', { title: 'Hello World', count: 42 }, {})
 
     await waitFor(() => {
@@ -35,7 +39,7 @@ describe('createRenderFunction', () => {
   })
 
   it('throws when component not found', async () => {
-    const render = createRenderFunction(testComponentMap)
+    const render = createRenderFunction(testComponents)
 
     await expect(render(container, 'NonExistent', {}, {})).rejects.toThrow(
       'Component NonExistent not found'
@@ -43,7 +47,7 @@ describe('createRenderFunction', () => {
   })
 
   it('renders slots from HTML strings', async () => {
-    const render = createRenderFunction(testComponentMap)
+    const render = createRenderFunction(testComponents)
     await render(
       container,
       'Slot',
@@ -61,11 +65,11 @@ describe('createRenderFunction', () => {
 
   it('works with prefixed component IDs', async () => {
     const components: ComponentMap = {
-      MyProjectHero: componentEntry(TestComponent),
+      AcmeHero: componentEntry(TestComponent),
     }
 
     const render = createRenderFunction(components)
-    await render(container, 'MyProjectHero', { title: 'Hero Title' }, {})
+    await render(container, 'AcmeHero', { title: 'Hero Title' }, {})
 
     await waitFor(() => {
       expect(container.querySelector('h1')?.textContent).toBe('Hero Title')

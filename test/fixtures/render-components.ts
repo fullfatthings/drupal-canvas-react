@@ -76,14 +76,6 @@ export function componentEntry<T>(component: React.ComponentType<T>, path = 'tes
   }
 }
 
-/**
- * Pre-built component map with all test components.
- */
-export const testComponentMap: ComponentMap = {
-  Test: componentEntry(TestComponent),
-  Slot: componentEntry(SlotComponent, 'slot.tsx'),
-  MultiSlot: componentEntry(MultiSlotComponent, 'multi.tsx'),
-}
 
 // =============================================================================
 // Canvas Component Helpers (for server tests)
