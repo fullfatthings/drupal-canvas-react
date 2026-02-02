@@ -1,7 +1,7 @@
 {
   "name": "drupal-canvas-react",
   "version": "0.1.0",
-  "description": "Build React components for Drupal Canvas integration",
+  "description": "Use Drupal Canvas to build pages from React components, then render them anywhere",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -49,8 +49,16 @@
     "nextjs",
     "components"
   ],
-  "author": "",
+  "author": "Full Fat Things <info@fullfatthings.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fullfatthings/drupal-canvas-react"
+  },
+  "homepage": "https://github.com/fullfatthings/drupal-canvas-react#readme",
+  "bugs": {
+    "url": "https://github.com/fullfatthings/drupal-canvas-react/issues"
+  },
   "peerDependencies": {
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
