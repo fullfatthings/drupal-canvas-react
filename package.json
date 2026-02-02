@@ -3,40 +3,40 @@
   "version": "0.1.0",
   "description": "Use Drupal Canvas to build pages from React components, then render them anywhere",
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "bin": {
-    "drupal-canvas-react": "./dist/cli.js"
+    "drupal-canvas-react": "./dist/cli.mjs"
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
     },
     "./preview": {
-      "types": "./dist/preview.d.ts",
-      "import": "./dist/preview.js"
+      "types": "./dist/preview.d.mts",
+      "import": "./dist/preview.mjs"
     },
     "./server": {
-      "types": "./dist/server.d.ts",
-      "import": "./dist/server.js"
+      "types": "./dist/server.d.mts",
+      "import": "./dist/server.mjs"
     },
     "./stubs/image": {
-      "types": "./dist/stubs/image.d.ts",
-      "import": "./dist/stubs/image.js"
+      "types": "./dist/stubs/image.d.mts",
+      "import": "./dist/stubs/image.mjs"
     },
     "./stubs/link": {
-      "types": "./dist/stubs/link.d.ts",
-      "import": "./dist/stubs/link.js"
+      "types": "./dist/stubs/link.d.mts",
+      "import": "./dist/stubs/link.mjs"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src test",
@@ -69,21 +69,21 @@
   "dependencies": {
     "html-react-parser": "^5.2.0",
     "react-docgen-typescript": "^2.4.0",
-    "tsup": "^8.5.0"
+    "tsdown": "^0.20.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@testing-library/react": "^16.3.2",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
-    "eslint": "^9.0.0",
-    "prettier": "^3.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "ajv": "^8.17.0",
     "ajv-draft-04": "^1.0.0",
+    "eslint": "^9.0.0",
     "jsdom": "^27.4.0",
+    "prettier": "^3.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "typescript": "^5.9.0",

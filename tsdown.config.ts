@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from 'tsdown'
 
 export default defineConfig([
   // Main library exports
@@ -24,6 +24,6 @@ export default defineConfig([
     dts: false,
     splitting: false,
     sourcemap: true,
-    external: ['react', 'react-dom', 'tsup'],
+    external: ['react', 'react-dom', 'tsdown'],
   },
 ])
