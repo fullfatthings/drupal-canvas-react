@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import type { ComponentEntry, ComponentModule } from './types.js'
+import type { ComponentEntry } from './types.js'
 
 /**
  * Check if a value is a valid React component.

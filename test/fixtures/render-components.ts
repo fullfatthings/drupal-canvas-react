@@ -2,7 +2,6 @@
  * Shared test components and utilities for preview and server render tests.
  */
 import React, { type ReactNode } from 'react'
-import type { ComponentMap } from '../../src/types.js'
 import type { DrupalCanvasComponent } from '../../src/server.js'
 
 // =============================================================================
