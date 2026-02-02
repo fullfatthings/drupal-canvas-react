@@ -305,7 +305,7 @@ The package only builds JavaScript. For CSS, run your own build process:
 
 ## Maintainer
 
-[![Full Fat Things](assets/fullfatthings-logo.svg)](https://www.fullfatthings.com)
+[![Full Fat Things](https://www.fullfatthings.com/sites/default/files/logo.svg)](https://www.fullfatthings.com)
 
 Get in touch for commercial support.
 
