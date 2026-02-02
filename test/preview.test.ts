@@ -5,11 +5,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { waitFor } from '@testing-library/react'
 import { createRenderFunction } from '../src/preview.js'
 import type { ComponentMap } from '../src/types.js'
-import {
-  TestComponent,
-  SlotComponent,
-  componentEntry,
-} from './fixtures/render-components.js'
+import { TestComponent, SlotComponent, componentEntry } from './fixtures/render-components.js'
 
 const testComponents: ComponentMap = {
   Test: componentEntry(TestComponent),

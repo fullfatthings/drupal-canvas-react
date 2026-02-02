@@ -75,7 +75,6 @@ export function componentEntry<T>(component: React.ComponentType<T>, path = 'tes
   }
 }
 
-
 // =============================================================================
 // Canvas Component Helpers (for server tests)
 // =============================================================================

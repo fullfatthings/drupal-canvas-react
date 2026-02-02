@@ -378,7 +378,6 @@ describe('generateComponentIndex', () => {
     expect(component.props.properties.asset).toBeUndefined()
     expect(component.props.properties.items).toBeUndefined()
   })
-
 })
 
 describe('defineConfig', () => {

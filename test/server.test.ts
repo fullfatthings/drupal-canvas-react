@@ -112,9 +112,7 @@ describe('renderCanvasComponents', () => {
       },
     }
 
-    const canvasComponents = [
-      createCanvasComponent('1', 'extjs.test', { title: 'Named Export' }),
-    ]
+    const canvasComponents = [createCanvasComponent('1', 'extjs.test', { title: 'Named Export' })]
 
     const result = await renderCanvasComponents(canvasComponents, { components })
 
@@ -145,9 +143,7 @@ describe('renderCanvasComponents', () => {
   })
 
   it('silently skips missing components', async () => {
-    const canvasComponents = [
-      createCanvasComponent('1', 'extjs.nonexistent', { title: 'Test' }),
-    ]
+    const canvasComponents = [createCanvasComponent('1', 'extjs.nonexistent', { title: 'Test' })]
 
     const result = await renderCanvasComponents(canvasComponents, { components: testComponents })
 
@@ -155,14 +151,12 @@ describe('renderCanvasComponents', () => {
   })
 
   it('calls onError and renders returned node or null', async () => {
-    const onErrorWithNode = vi.fn().mockReturnValue(
-      createElement('div', { 'data-testid': 'error' }, 'Error')
-    )
+    const onErrorWithNode = vi
+      .fn()
+      .mockReturnValue(createElement('div', { 'data-testid': 'error' }, 'Error'))
     const onErrorWithNull = vi.fn().mockReturnValue(undefined)
 
-    const canvasComponents = [
-      createCanvasComponent('1', 'extjs.missing', { title: 'Test' }),
-    ]
+    const canvasComponents = [createCanvasComponent('1', 'extjs.missing', { title: 'Test' })]
 
     // Returns custom element
     const result1 = await renderCanvasComponents(
@@ -170,7 +164,10 @@ describe('renderCanvasComponents', () => {
       { components: testComponents },
       { onError: onErrorWithNode }
     )
-    expect(onErrorWithNode).toHaveBeenCalledWith(expect.any(Error), expect.objectContaining({ uuid: '1' }))
+    expect(onErrorWithNode).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ uuid: '1' })
+    )
     expect((result1 as React.ReactElement[])[0].props['data-testid']).toBe('error')
 
     // Returns null when handler returns undefined

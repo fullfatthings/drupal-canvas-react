@@ -10,11 +10,7 @@ interface WithPropsProps {
 /**
  * A component with various prop types.
  */
-export default function WithProps({
-  title,
-  count = 0,
-  bordered = false,
-}: WithPropsProps) {
+export default function WithProps({ title, count = 0, bordered = false }: WithPropsProps) {
   return (
     <div className={bordered ? 'border' : ''}>
       {title}: {count}

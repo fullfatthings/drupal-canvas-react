@@ -50,10 +50,10 @@ export function createRenderFunction(components: ComponentMap): RenderFunction {
     // Apply transformProps if defined
     const finalProps = entry.transformProps ? entry.transformProps(props) : props
 
-    const el = React.createElement(
-      Component as React.ComponentType<Record<string, unknown>>,
-      { ...finalProps, ...parsedSlots }
-    )
+    const el = React.createElement(Component as React.ComponentType<Record<string, unknown>>, {
+      ...finalProps,
+      ...parsedSlots,
+    })
     createRoot(container).render(el)
 
     return container

@@ -70,7 +70,11 @@ async function main() {
   }
 
   if (command === '--version' || command === '-v') {
-    const packageJsonPath = path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'package.json')
+    const packageJsonPath = path.join(
+      path.dirname(new URL(import.meta.url).pathname),
+      '..',
+      'package.json'
+    )
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
     console.log(packageJson.version)
     process.exit(0)
@@ -137,10 +141,7 @@ function generateEntryCode(config: CanvasConfig): string {
       loaderImports.push(`    '${prefixedId}': () => import('${importPath}'),`)
 
       // Build component entry with optional transformProps
-      const entryParts = [
-        `    path: '${entry.path}'`,
-        `    loader: loaders['${prefixedId}']`,
-      ]
+      const entryParts = [`    path: '${entry.path}'`, `    loader: loaders['${prefixedId}']`]
       if (entry.transformProps) {
         entryParts.push(`    transformProps: ${entry.transformProps.toString()}`)
       }

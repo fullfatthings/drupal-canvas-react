@@ -11,9 +11,5 @@ interface WithEnumProps {
  * A component with enum/union string props.
  */
 export default function WithEnum({ size, theme = 'light', label }: WithEnumProps) {
-  return (
-    <div className={`size-${size} theme-${theme}`}>
-      {label}
-    </div>
-  )
+  return <div className={`size-${size} theme-${theme}`}>{label}</div>
 }

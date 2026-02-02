@@ -1,7 +1,13 @@
 import { parse } from 'react-docgen-typescript'
 import * as fs from 'fs'
 import * as path from 'path'
-import type { CanvasConfig, ComponentIndex, PropertySchema, OutputPropertySchema, SlotDefinition } from './types.js'
+import type {
+  CanvasConfig,
+  ComponentIndex,
+  PropertySchema,
+  OutputPropertySchema,
+  SlotDefinition,
+} from './types.js'
 
 const CANVAS_IMAGE_REF = 'json-schema-definitions://canvas.module/image'
 
@@ -247,9 +253,7 @@ export async function generateComponentIndex(
       // Check if the type is compatible with Canvas
       const typeResult = convertTypeToJsonSchema(propInfo.type.name)
       if (typeResult.incompatible) {
-        console.warn(
-          `  ⚠ ${id}.${propName}: type "${propInfo.type.name}" is not supported`
-        )
+        console.warn(`  ⚠ ${id}.${propName}: type "${propInfo.type.name}" is not supported`)
         continue
       }
 

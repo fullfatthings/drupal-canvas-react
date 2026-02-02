@@ -79,9 +79,7 @@ export async function renderCanvasComponents(
 ): Promise<ReactNode> {
   const { components: componentMap, idPrefix } = config
   const { onError } = options
-  function getChildrenBySlot(
-    parentUuid: string | null
-  ): Map<string, DrupalCanvasComponent[]> {
+  function getChildrenBySlot(parentUuid: string | null): Map<string, DrupalCanvasComponent[]> {
     const children = canvasComponents.filter((c) => c.parent_uuid === parentUuid)
     const bySlot = new Map<string, DrupalCanvasComponent[]>()
     for (const child of children) {
@@ -94,9 +92,7 @@ export async function renderCanvasComponents(
     return bySlot
   }
 
-  async function renderComponent(
-    component: DrupalCanvasComponent
-  ): Promise<ReactNode> {
+  async function renderComponent(component: DrupalCanvasComponent): Promise<ReactNode> {
     try {
       const componentKey = componentIdToKey(component.component_id, idPrefix)
       const entry = componentMap[componentKey]
@@ -114,9 +110,7 @@ export async function renderCanvasComponents(
       const slots: Record<string, ReactNode> = {}
       const childrenBySlot = getChildrenBySlot(component.uuid)
       for (const [slotName, slotChildren] of childrenBySlot) {
-        slots[slotName] = await Promise.all(
-          slotChildren.map((child) => renderComponent(child))
-        )
+        slots[slotName] = await Promise.all(slotChildren.map((child) => renderComponent(child)))
       }
 
       return createElement(Component, { key: component.uuid, ...props, ...slots })
